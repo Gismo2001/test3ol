@@ -1,59 +1,61 @@
-import 'ol/ol.css'; // Sie müssen die OpenLayers-CSS-Datei weiterhin importieren, da das geo.okapi-Framework OpenLayers verwendet
+import './style.css';
+import Map from 'ol/Map.js';
+import MousePosition from 'ol/control/MousePosition.js';
+import OSM from 'ol/source/OSM.js';
+import TileLayer from 'ol/layer/Tile.js';
+import View from 'ol/View.js';
+import {createStringXY} from 'ol/coordinate.js';
+import {defaults as defaultControls} from 'ol/control.js';
 
-new okapi.MapBuilder()
-  .setTarget('map')             
-  .setView({
-      projection: 'EPSG:25832'  
-  })
-  .setLayers({
-      baseLayers: [
-          {
-              type: 'BKG',
-              name: 'TopPlusOpen',
-              ref: 'topplus_open',
-              visibility: true
-          }
-      ],
-      overlays: [
-        {
-            type: 'GPS',
-            name: 'GPS Layer',
-            url: 'data/exp_bw_weh.gpx',
-            visibility: true,
-            minResolution: 0.0001,
-            maxResolution: 156545,
-            edit: false
-        }
-    ]
-  })
-  .setView({
-    projection: 'EPSG:25832',
-    center: {
-        lon: 472624.676559,
-        lat: 5554554.520574
-    },
-    zoom: 9
-})
-  .setControls({
-    panelPosition: 'right',
-      tools: {
-        layerSwitcher: {
-          active: true,
-          style: 'customLayerSwitcher',
-          editStyle: false,
-          changeVisibility: true,
-          showWMSLayers: true,
-          changeOrder: true,
-          openLevel: 0
-           },
-          copyright: {active: true},
-          //copyCoordinates: { active: true },
-          showAttributes: {active: true},
-          //showCoordinates: {active: true},
-          zoom: {active: true}
-          
-      }
-  })
-  .create();
+const map = new Map({
+  controls: defaultControls(),
+  layers: [
+    new TileLayer({
+      source: new OSM(),
+    }),
+  ],
+  target: 'map',
+  view: new View({
+    center: [0, 0],
+    zoom: 2,
+  }),
+});
 
- 
+const mousePositionControl = new MousePosition({
+  coordinateFormat: createStringXY(4),
+  projection: 'EPSG:4326',
+  className: 'custom-mouse-position',
+  target: document.getElementById('mouse-position'),
+});
+
+map.addControl(mousePositionControl);
+
+const projectionSelect = document.getElementById('projection');
+projectionSelect.addEventListener('change', function (event) {
+  const projectionValue = event.target.value;
+  mousePositionControl.setProjection(projectionValue);
+  mousePositionControl.setCoordinateFormat(createStringXY(4)); // Set coordinate format back to default
+});
+
+const precisionInput = document.getElementById('precision');
+precisionInput.addEventListener('change', function (event) {
+  const format = createStringXY(event.target.valueAsNumber);
+  mousePositionControl.setCoordinateFormat(format);
+});
+
+
+const toggleButton = document.createElement('button');
+toggleButton.textContent = 'Toggle Coordinates';
+toggleButton.id = 'toggle-button'; // Setze die ID des Buttons
+toggleButton.addEventListener('click', function () {
+  const mousePositionDiv = document.getElementById('mouse-position');
+  mousePositionDiv.classList.toggle('hidden');
+});
+
+// Füge den Button dem Dokument hinzu
+document.body.appendChild(toggleButton);
+
+document.getElementById('toggle-button').addEventListener('click', function() {
+  const controls = document.querySelector('.controls');
+  controls.classList.toggle('hidden');
+});
