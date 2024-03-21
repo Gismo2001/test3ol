@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mouse Position</title>
   <link rel="stylesheet" href="node_modules/ol/ol.css">
   <style>
@@ -45,10 +46,12 @@
     </select>
     <label for="precision">Precision:</label>
     <input id="precision" type="number" min="0" max="12" value="4"/>
+    <input type="checkbox" id="toggle-checkbox">
     <div id="mouse-position"></div>
   </div>
   <div class="button-container">
     <button id="toggle-button">Toggle Coordinates</button>
+   
   </div>
 
   <script type="module" src="main.js"></script>

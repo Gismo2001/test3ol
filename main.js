@@ -59,3 +59,13 @@ document.getElementById('toggle-button').addEventListener('click', function() {
   const controls = document.querySelector('.controls');
   controls.classList.toggle('hidden');
 });
+
+document.getElementById('toggle-checkbox').addEventListener('change', function() {
+   if (this.checked) {
+    // Checkbox ist aktiviert
+    console.log('Checkbox ist aktiviert');
+  } else {
+    // Checkbox ist deaktiviert
+    console.log('Checkbox ist deaktiviert');
+  }
+});
