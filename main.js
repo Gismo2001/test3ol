@@ -29,7 +29,7 @@ const map = new Map({
 
 const mousePositionControl = new MousePosition({
   coordinateFormat: createStringXY(0),
-  projection: 'EPSG:4326', // Startprojektion
+  projection: document.getElementById('projection').value,
   className: 'custom-mouse-position',
   target: document.getElementById('mouse-position'),
 });
@@ -39,7 +39,6 @@ map.addControl(mousePositionControl);
 const projectionSelect = document.getElementById('projection');
 projectionSelect.addEventListener('change', function (event) {
   const projectionValue = event.target.value;
-  console.log (projectionSelect.value);
   mousePositionControl.setProjection(projectionValue); // Aktualisiere die Projektion
   mousePositionControl.setCoordinateFormat(createStringXY(1)); // Setze das Koordinatenformat entsprechend der neuen Projektion
 });
@@ -73,10 +72,6 @@ function placeMarkerAndShowCoordinates(event) {
   }
 }
 
-map.on('click', placeMarkerAndShowCoordinates);
-
-
-
 function convertToDegreeDecimalMinutes(coordinate) {
   const lon = coordinate[0];
   const lat = coordinate[1];
@@ -96,28 +91,41 @@ function convertToDegreeDecimalMinutes(coordinate) {
   return `${lonDegree},${lonMinutes.toFixed(5)} ${lonDirection}, ${latDegree},${latMinutes.toFixed(5)} ${latDirection}`;
 }
 
-
-
 map.on('click', placeMarkerAndShowCoordinates);
 
 const toggleCheckbox = document.getElementById('toggle-checkbox');
 toggleCheckbox.addEventListener('change', function() {
    if (this.checked) {
     //Mouse-Position abschalten und auf Nutzereingabe mit Marker waren
+    console.log(document.getElementById('projection').value);
     map.removeControl(mousePositionControl); 
-    console.log('Checkbox ist aktiviert');
+    
   } else {
     //Mouse-Position wieder einschalten
+    console.log(document.getElementById('projection').value);
     map.addControl(mousePositionControl);
-    console.log('Checkbox ist deaktiviert');
+    
   }
 });
 
 
-
-
 document.getElementById('hide-button').addEventListener('click', function() {
-  console.log ('geclickt');
   const controls = document.querySelector('.controls');
   controls.classList.toggle('hidden');
+  
+  // Überprüfen, ob das Element sichtbar oder verborgen ist
+  if (controls.classList.contains('hidden')) {
+    console.log('Element ist verborgen');
+
+    // Marker entfernen
+    map.getOverlays().clear();
+
+    // Event-Listener für Klicks auf der Karte entfernen
+    map.un('click', placeMarkerAndShowCoordinates);
+  } else {
+    console.log('Element ist sichtbar');
+
+    // Event-Listener für Klicks auf der Karte wieder hinzufügen
+    map.on('click', placeMarkerAndShowCoordinates);
+  }
 });
