@@ -17,3 +17,11 @@ body{
   height: 100vh;
   position: relative; /* Hinzugefügt: Setzen Sie die Position des Karten-DIV auf relative */
 }
+
+.marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red; /* Farbe des Markers */
+  border: 2px solid white; /* Randstil des Markers */
+}
