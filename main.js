@@ -5,12 +5,10 @@ import OSM from 'ol/source/OSM.js';
 import TileLayer from 'ol/layer/Tile.js';
 import View from 'ol/View.js';
 import Overlay from 'ol/Overlay.js';
-import * as proj from 'ol/proj';
 import {createStringXY} from 'ol/coordinate.js';
 import {defaults as defaultControls} from 'ol/control.js';
-
-import { toStringHDMS } from 'ol/coordinate.js';
-import { transform } from 'ol/proj.js';
+import {fromLonLat} from 'ol/proj'; // Import für 'proj'
+import { transform } from 'ol/proj';
 
 const map = new Map({
   controls: defaultControls(),
@@ -21,30 +19,36 @@ const map = new Map({
   ],
   target: 'map',
   view: new View({
-    center: proj.fromLonLat([7.35, 52.7]),
+    center: fromLonLat([7.35, 52.7]), // Verwendung von fromLonLat
     zoom: 9
   }),
 });
 
-
 const mousePositionControl = new MousePosition({
-  coordinateFormat: createStringXY(0),
-  projection: document.getElementById('projection').value,
+  coordinateFormat: createStringXY(6),
+  projection: 'EPSG:4326', // Start-Projektion
   className: 'custom-mouse-position',
   target: document.getElementById('mouse-position'),
 });
 map.addControl(mousePositionControl);
 
-
-const projectionSelect = document.getElementById('projection');
+// Projektion für Maus anwenden
+const projectionSelect = document.getElementById('projecSelect');
 projectionSelect.addEventListener('change', function (event) {
-  const projectionValue = event.target.value;
-  mousePositionControl.setProjection(projectionValue); // Aktualisiere die Projektion
-  mousePositionControl.setCoordinateFormat(createStringXY(1)); // Setze das Koordinatenformat entsprechend der neuen Projektion
+  if (projectionSelect.value === 'EPSG:3857') {
+    const format = createStringXY(2);
+    mousePositionControl.setCoordinateFormat(format);
+    mousePositionControl.setProjection(event.target.value);
+  } else if (projectionSelect.value === 'EPSG:4326') {
+    const format = createStringXY(6);
+    mousePositionControl.setCoordinateFormat(format);
+    mousePositionControl.setProjection(event.target.value);
+  }
 });
 
 function placeMarkerAndShowCoordinates(event) {
   map.getOverlays().clear();
+  const mousePositionElement = document.getElementById('mouse-position'); // Auswahl des HTML-Elements
   if (toggleCheckbox.checked) {
     const marker = document.createElement('div');
     marker.className = 'marker';
@@ -54,78 +58,49 @@ function placeMarkerAndShowCoordinates(event) {
       stopEvent: false,
     });
     map.addOverlay(markerOverlay);
-
-    const selectedProjection = projectionSelect.value;
-    
-    const transformedCoordinate = proj.transform(event.coordinate, 'EPSG:3857', selectedProjection);
-    
-    mousePositionControl.setCoordinateFormat(createStringXY(4));
-
-    if (selectedProjection === 'EPSG:3587') {
-      const formattedCoordinate = convertToDegreeDecimalMinutes(transformedCoordinate);
-      const mousePositionElement = document.getElementById('mouse-position');
-      mousePositionElement.innerHTML = `Coordinates: ${formattedCoordinate}`;
-    } else {
-      const mousePositionElement = document.getElementById('mouse-position');
-      mousePositionElement.innerHTML = `Coordinates: ${transformedCoordinate.map(coord => coord.toFixed(4)).join(', ')}`;
+    if (projectionSelect.value === 'EPSG:3857') {
+      const format = createStringXY(2);
+      mousePositionElement.innerHTML = `Coordinates: ${format(event.coordinate)}`;
+     } else if (projectionSelect.value === 'EPSG:4326') {
+      const format = createStringXY(6);
+      const transformedCoordinate = transformCoordinateToMousePosition(event.coordinate);
+      mousePositionElement.innerHTML = `Coordinates: ${format(transformedCoordinate)}`;
     }
   }
 }
-
-function convertToDegreeDecimalMinutes(coordinate) {
-  const lon = coordinate[0];
-  const lat = coordinate[1];
-
-  const lonDirection = lon >= 0 ? 'E' : 'W';
-  const latDirection = lat >= 0 ? 'N' : 'S';
-
-  const lonAbs = Math.abs(lon);
-  const latAbs = Math.abs(lat);
-
-  const lonDegree = Math.floor(lonAbs);
-  const latDegree = Math.floor(latAbs);
-
-  const lonMinutes = (lonAbs - lonDegree) * 60;
-  const latMinutes = (latAbs - latDegree) * 60;
-
-  return `${lonDegree},${lonMinutes.toFixed(5)} ${lonDirection}, ${latDegree},${latMinutes.toFixed(5)} ${latDirection}`;
-}
-
 map.on('click', placeMarkerAndShowCoordinates);
 
 const toggleCheckbox = document.getElementById('toggle-checkbox');
 toggleCheckbox.addEventListener('change', function() {
-   if (this.checked) {
-    //Mouse-Position abschalten und auf Nutzereingabe mit Marker waren
-    console.log(document.getElementById('projection').value);
+  if (this.checked) {
+    console.log('gecheckt');
+    
+    document.getElementById('mouse-position').innerHTML = "";
     map.removeControl(mousePositionControl); 
     
   } else {
-    //Mouse-Position wieder einschalten
-    console.log(document.getElementById('projection').value);
     map.addControl(mousePositionControl);
-    
   }
 });
-
 
 document.getElementById('hide-button').addEventListener('click', function() {
   const controls = document.querySelector('.controls');
   controls.classList.toggle('hidden');
-  
-  // Überprüfen, ob das Element sichtbar oder verborgen ist
   if (controls.classList.contains('hidden')) {
-    console.log('Element ist verborgen');
-
-    // Marker entfernen
     map.getOverlays().clear();
-
-    // Event-Listener für Klicks auf der Karte entfernen
+    document.getElementById('toggle-checkbox').checked = false;
     map.un('click', placeMarkerAndShowCoordinates);
   } else {
-    console.log('Element ist sichtbar');
-
-    // Event-Listener für Klicks auf der Karte wieder hinzufügen
+    
+    map.addControl(mousePositionControl);
     map.on('click', placeMarkerAndShowCoordinates);
   }
 });
+
+
+//Umrechnung geclickter Kartenpositionen in mousePositionControl-Format
+//für EPSG:4326
+function transformCoordinateToMousePosition(coordinate) {
+  // Koordinaten in das Format von mousePositionControl (EPSG:4326) umwandeln
+  return transform(coordinate, map.getView().getProjection(), 'EPSG:4326');
+}

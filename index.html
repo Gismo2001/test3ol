@@ -10,17 +10,15 @@
 <body>
   <div id="map" class="map"></div>
   <div class="controls">
-    <label for="projection">Coord.:</label>
-    <select id="projection">
-      <option value="EPSG:3857">EPSG:3857</option>
+    <label for="projecSelect">Coord.:</label>
+    <select id="projecSelect">
       <option value="EPSG:4326">EPSG:4326</option>
-      <!-- <option value="EPSG:25832">EPSG:25832</option> -->
-    </select>
+      <option value="EPSG:3857">EPSG:3857</option>
+     </select>
     <input type="checkbox" id="toggle-checkbox">
-    <div id="mouse-position" class="custom-mouse-position"></div> <!-- Nur einmal definieren -->
+    <div id="mouse-position" class="custom-mouse-position"></div>
   </div>
   <div class="button-container"><button id="hide-button">C</button></div>
 <script type="module" src="main.js"></script>
 </body>
 </html>
-

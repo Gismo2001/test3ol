@@ -69,3 +69,9 @@ body{
   display: none;
 }
 
+
+#hide-button {
+  width: 25px; /* Setze die Breite auf 50px */
+  height: 25px; /* Setze die Höhe auf 30px */
+  font-size: 16px; /* Setze die Schriftgröße auf 16px */
+}
