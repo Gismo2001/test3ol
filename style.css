@@ -17,14 +17,26 @@ body{
   height: 100vh;
   position: relative; /* Hinzugefügt: Setzen Sie die Position des Karten-DIV auf relative */
 }
-
 .marker {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  background-color: red; /* Farbe des Markers */
-  border: 2px solid white; /* Randstil des Markers */
+  border: 2px solid #000; /* Randstil des Kreises */
+  border-radius: 50%; /* Macht den Kreis */
+  position: relative; /* Erforderlich, um den Punkt in der Mitte zu positionieren */
 }
+
+.marker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background-color: #000; /* Farbe des Punktes */
+  border-radius: 50%; /* Macht den Punkt */
+}
+
 
 .controls * {
   font-size: 12px; /* Hier kannst du die gewünschte Größe für alle Elemente innerhalb des Div-Containers angeben */
