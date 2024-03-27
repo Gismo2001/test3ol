@@ -3,131 +3,130 @@ import Map from 'ol/Map.js';
 import OSM from 'ol/source/OSM.js';
 import TileLayer from 'ol/layer/Tile.js';
 import View from 'ol/View.js';
+import {Vector as VectorLayer} from 'ol/layer.js';
+import {Circle as CircleStyle, Fill, Stroke,Style} from 'ol/style.js';
+import VectorTileLayer from 'ol/layer/VectorTile.js';
+import VectorTileSource from 'ol/source/VectorTile.js';
+import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
+import GeoJSON from 'ol/format/GeoJSON.js';
+import * as LoadingStrategy from 'ol/loadingstrategy';
+import * as proj from 'ol/proj';
+import SearchNominatim from 'ol-ext/control/SearchNominatim';
+import VectorSource from 'ol/source/Vector';
 
-import {defaults as defaultControls} from 'ol/control.js';
 
-import MousePosition from 'ol/control/MousePosition.js';
-import Overlay from 'ol/Overlay.js';
-import {createStringXY} from 'ol/coordinate.js';
-import {fromLonLat} from 'ol/proj'; // Import für 'proj'
-import { transform } from 'ol/proj';
-import { register } from 'ol/proj/proj4';
-import proj4 from 'proj4';
 
-//projektion definieren und registrieren
-proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
-register(proj4);
+
+
+const attribution = new Attribution({
+  collapsible: false,
+  html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+});
+
+const mapView = new View({
+  center: proj.fromLonLat([7.35, 52.7]),
+  zoom: 9
+});
 
 const map = new Map({
-  controls: defaultControls(),
-  layers: [
-    new TileLayer({
-      source: new OSM(),
+  target: "map",
+  view: mapView,
+  controls: defaultControls().extend([
+    new FullScreen(),
+    new ZoomToExtent({
+      extent: [727361, 6839277, 858148, 6990951] // Geben Sie hier das Ausdehnungsintervall an
     }),
-  ],
-  target: 'map',
-  view: new View({
-    center: fromLonLat([7.35, 52.7]), // Verwendung von fromLonLat
-    zoom: 9
+    attribution // Fügen Sie hier Ihre benutzerdefinierte Attribution-Steuerung hinzu
+  ]),
+  
+});
+
+// Fügen Sie die SearchNominatim-Steuerung zur Karte hinzu
+
+
+const osmTileCr = new TileLayer({
+  title: "osm-color",
+  type: 'base',
+  source: new OSM({
+      url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
   }),
+  visible: true,
+  opacity: 0.75
 });
 
-const mousePositionControl = new MousePosition({
-  coordinateFormat: createStringXY(6),
-  projection: 'EPSG:4326', // Start-Projektion
-  className: 'custom-mouse-position',
-  target: document.getElementById('mouse-position'),
+map.addLayer(osmTileCr);
+
+// Current selection
+var sLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: new Style({
+      image: new CircleStyle({
+          radius: 5,
+          stroke: new Stroke ({
+              color: 'rgb(255,165,0)',
+              width: 3
+          }),
+          fill: new Fill({
+              color: 'rgba(255,165,0,.3)'
+          })
+      }),
+      stroke: new Stroke ({
+          color: 'rgb(255,165,0)',
+          width: 3
+      }),
+      fill: new Fill({
+          color: 'rgba(255,165,0,.3)'
+      })
+  })
 });
-map.addControl(mousePositionControl);
+map.addLayer(sLayer);
 
-// Projektion für Maus anwenden
-const projectionSelect = document.getElementById('projecSelect');
-projectionSelect.addEventListener('change', function (event) {
-  if (projectionSelect.value === 'EPSG:3857') {
-    const format = createStringXY(2);
-    mousePositionControl.setCoordinateFormat(format);
-    mousePositionControl.setProjection(event.target.value);
-    
-  } else if (projectionSelect.value === 'EPSG:4326') {
-    const format = createStringXY(6);
-    mousePositionControl.setCoordinateFormat(format);
-    mousePositionControl.setProjection(event.target.value);
+// Set the search control 
+var search = new SearchNominatim (
+  {   //target: $(".options").get(0),
+      polygon: $("#polygon").prop("checked"),
+      position: true  // Search, with priority to geo position
+  });
+map.addControl (search);
 
-  } else if (projectionSelect.value === 'EPSG:32632') {
-    console.log('32632')
-    const format = createStringXY(1);
-    mousePositionControl.setCoordinateFormat(format);
-    mousePositionControl.setProjection(event.target.value);
-  }
-});
+// Select feature when click on the reference index
+search.on('select', function(e)
+  {   // console.log(e);
+      sLayer.getSource().clear();
+      // Check if we get a geojson to describe the search
+      if (e.search.geojson) {
+          var format = new ol.format.GeoJSON();
+          var f = format.readFeature(e.search.geojson, { dataProjection: "EPSG:4326", featureProjection: map.getView().getProjection() });
+          sLayer.getSource().addFeature(f);
+          var view = map.getView();
+          var resolution = view.getResolutionForExtent(f.getGeometry().getExtent(), map.getSize());
+          var zoom = view.getZoomForResolution(resolution);
+          var center = ol.extent.getCenter(f.getGeometry().getExtent());
+          // redraw before zoom
+          setTimeout(function(){
+                  view.animate({
+                  center: center,
+                  zoom: Math.min (zoom, 16)
+              });
+          }, 100);
+      }
+      else {
+          map.getView().animate({
+              center:e.coordinate,
+              zoom: Math.max (map.getView().getZoom(),16)
+          });
+      }
+  });
 
-function placeMarkerAndShowCoordinates(event) {
-  map.getOverlays().clear();
-  const mousePositionElement = document.getElementById('mouse-position'); // Auswahl des HTML-Elements
-  if (toggleCheckbox.checked) {
-    const marker = document.createElement('div');
-    marker.className = 'marker';
-    const markerOverlay = new Overlay({
-      position: event.coordinate,
-      positioning: 'center-center', 
-      element: marker,
-      stopEvent: false,
-    });
-    map.addOverlay(markerOverlay);
-    if (projectionSelect.value === 'EPSG:3857') {
-      const format = createStringXY(2);
-      mousePositionElement.innerHTML = `Coordinates: ${format(event.coordinate)}`;
-    } else if (projectionSelect.value === 'EPSG:4326') {
-      const format = createStringXY(6);
-      const transformedCoordinate = transformCoordinateToMousePosition4326(event.coordinate);
-      mousePositionElement.innerHTML = `Coordinates: ${format(transformedCoordinate)}`;
-    } else if (projectionSelect.value === 'EPSG:32632') {
-      console.log('32632')
-      const format = createStringXY(1);
-      const transformedCoordinate = transformCoordinateToMousePosition32632(event.coordinate);
-      mousePositionElement.innerHTML = `Coordinates: ${format(transformedCoordinate)}`;
-      //const googleMapsLink = `https://maps.app.goo.gl/?q=${transformedCoordinate[0]},${transformedCoordinate[1]}`;
-      //console.log(googleMapsLink);
+  
+ /*  var ve_hy = new TileLayer.VirtualEarth(
+    "VirtualEarth Hybrid", 
+    { type: VEMapStyle.Hybrid, 
+      sphericalMercator: true
     }
-  }
-}
-map.on('click', placeMarkerAndShowCoordinates);
+);
 
-const toggleCheckbox = document.getElementById('toggle-checkbox');
-toggleCheckbox.addEventListener('change', function() {
-  if (this.checked) {
-    console.log('gecheckt');
-    document.getElementById('mouse-position').innerHTML = "";
-    map.removeControl(mousePositionControl); 
-  } else {
-    map.addControl(mousePositionControl);
-  }
-});
+// Stellen Sie sicher, dass 'map' definiert ist und 'addLayer()' eine gültige Methode für 'map' ist
+map.addLayer(ve_hy); */
 
-document.getElementById('hide-button').addEventListener('click', function() {
-  const controls = document.querySelector('.controls');
-  controls.classList.toggle('hidden');
-  if (controls.classList.contains('hidden')) {
-    map.getOverlays().clear();
-    document.getElementById('toggle-checkbox').checked = false;
-    map.un('click', placeMarkerAndShowCoordinates);
-  } else {
-    map.addControl(mousePositionControl);
-    map.on('click', placeMarkerAndShowCoordinates);
-  }
-});
-
-
-//Umrechnung geclickter Kartenpositionen in mousePositionControl-Format
-//für EPSG:4326
-function transformCoordinateToMousePosition4326(coordinate) {
-  // Koordinaten in das Format von mousePositionControl (EPSG:4326) umwandeln
-  return transform(coordinate, map.getView().getProjection(), 'EPSG:4326');
-}
-
-//für EPSG:32632
-function transformCoordinateToMousePosition32632(coordinate) {
-  // Koordinaten von der aktuellen Karte (EPSG:3857) nach EPSG:32632 umwandeln
-  //  const transformedCoordinate32632 = transform(clickedCoordinate3857, 'EPSG:3857', 'EPSG:32632');
-  return transform(coordinate, 'EPSG:3857', 'EPSG:32632');
-}
