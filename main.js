@@ -5,6 +5,8 @@ import TileLayer from 'ol/layer/Tile.js';
 import View from 'ol/View.js';
 import {Vector as VectorLayer} from 'ol/layer.js';
 import {Circle as CircleStyle, Fill, Stroke,Style} from 'ol/style.js';
+import {Point, Circle} from 'ol/geom.js';
+import Feature from 'ol/Feature';
 import VectorTileLayer from 'ol/layer/VectorTile.js';
 import VectorTileSource from 'ol/source/VectorTile.js';
 import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
@@ -14,7 +16,7 @@ import * as proj from 'ol/proj';
 import SearchNominatim from 'ol-ext/control/SearchNominatim';
 import VectorSource from 'ol/source/Vector';
 
-
+import Icon from 'ol/style/Icon'; // Hinzufügen Sie diesen Import
 
 
 
@@ -86,7 +88,9 @@ map.addLayer(sLayer);
 var search = new SearchNominatim (
   {   //target: $(".options").get(0),
       polygon: $("#polygon").prop("checked"),
-      position: true  // Search, with priority to geo position
+      //placeholder: 'Suche nach Adresse', // Platzhaltertext für das Suchfeld
+      position: true,  // Search, with priority to geo position
+      reverse: true
   });
 map.addControl (search);
 
@@ -117,16 +121,25 @@ search.on('select', function(e)
               zoom: Math.max (map.getView().getZoom(),16)
           });
       }
+      // Füge den Marker hinzu
+      addMarker(e.coordinate);
   });
 
-  
- /*  var ve_hy = new TileLayer.VirtualEarth(
-    "VirtualEarth Hybrid", 
-    { type: VEMapStyle.Hybrid, 
-      sphericalMercator: true
-    }
-);
+// Funktion zum Hinzufügen eines Markers
+function addMarker(coordinates) {
+  var marker = new Feature({
+    geometry: new Point(coordinates)
+  });
 
-// Stellen Sie sicher, dass 'map' definiert ist und 'addLayer()' eine gültige Methode für 'map' ist
-map.addLayer(ve_hy); */
+  var markerStyle = new Style({
+    image: new Icon({
+      src: 'data/marker.svg', // Pfad zur Bilddatei
+      //scale: 0.5 // Skalierung des Bildes
+    })
+  });
 
+  marker.setStyle(markerStyle);
+
+  sLayer.getSource().clear(); // Löscht vorherige Marker
+  sLayer.getSource().addFeature(marker);
+}
