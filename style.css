@@ -17,6 +17,7 @@ body{
   height: 100vh;
   position: relative; /* Hinzugefügt: Setzen Sie die Position des Karten-DIV auf relative */
 }
+
 .ol-search ul {
   color: #333;
   font-size:0.85em;
@@ -27,9 +28,17 @@ body{
   color: #333;
   font-size:0.85em;
 }
+.ol-search input[type="search"] {
+  font-size: 14px; /* Ändere die Textgröße nach Bedarf */
+}
 .info {
   display: inline-block;
-  width: 100%;
+  width: 0.85em;
+}
+/* Ändere die Breite des inline-Blocks */
+.info {
+  display: inline-block;
+  width: 150px; /* Ändere die Breite nach Bedarf */
 }
 .info a img {
   height: 100px;

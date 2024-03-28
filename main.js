@@ -62,17 +62,7 @@ map.addLayer(osmTileCr);
 // Current selection
 var sLayer = new VectorLayer({
   source: new VectorSource(),
-  style: new Style({
-      image: new CircleStyle({
-          radius: 5,
-          stroke: new Stroke ({
-              color: 'rgb(255,165,0)',
-              width: 3
-          }),
-          fill: new Fill({
-              color: 'rgba(255,165,0,.3)'
-          })
-      }),
+  style: new Style({ image: new CircleStyle({radius: 5,stroke: new Stroke ({color: 'rgb(255,165,0)', width: 3 }),fill: new Fill({color: 'rgba(255,165,0,.3)' })      }),
       stroke: new Stroke ({
           color: 'rgb(255,165,0)',
           width: 3
@@ -87,10 +77,12 @@ map.addLayer(sLayer);
 // Set the search control 
 var search = new SearchNominatim (
   {   //target: $(".options").get(0),
+    
       polygon: $("#polygon").prop("checked"),
       //placeholder: 'Suche nach Adresse', // Platzhaltertext für das Suchfeld
       position: true,  // Search, with priority to geo position
-      reverse: true
+      reverse: true,
+      
   });
 map.addControl (search);
 
@@ -130,16 +122,14 @@ function addMarker(coordinates) {
   var marker = new Feature({
     geometry: new Point(coordinates)
   });
-
   var markerStyle = new Style({
     image: new Icon({
       src: 'data/marker.svg', // Pfad zur Bilddatei
       //scale: 0.5 // Skalierung des Bildes
     })
   });
-
   marker.setStyle(markerStyle);
-
   sLayer.getSource().clear(); // Löscht vorherige Marker
   sLayer.getSource().addFeature(marker);
-}
+};
+
