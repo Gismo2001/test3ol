@@ -22,6 +22,7 @@ body{
   color: #333;
   font-size:0.85em;
   max-width: 21em;
+  z-index: 20000;
 }
 .ol-search ul i {
   display: block;
@@ -31,15 +32,14 @@ body{
 .ol-search input[type="search"] {
   font-size: 14px; /* Ändere die Textgröße nach Bedarf */
 }
+
 .info {
   display: inline-block;
-  width: 0.85em;
-}
-/* Ändere die Breite des inline-Blocks */
-.info {
-  display: inline-block;
+  font-size: 14px;
   width: 150px; /* Ändere die Breite nach Bedarf */
 }
+
+
 .info a img {
   height: 100px;
   margin-right: .5em;

@@ -1,29 +1,38 @@
-import './style.css';
-import Map from 'ol/Map.js';
-import OSM from 'ol/source/OSM.js';
-import TileLayer from 'ol/layer/Tile.js';
-import View from 'ol/View.js';
-import {Vector as VectorLayer} from 'ol/layer.js';
-import {Circle as CircleStyle, Fill, Stroke,Style} from 'ol/style.js';
-import {Point, Circle} from 'ol/geom.js';
-import Feature from 'ol/Feature';
-import VectorTileLayer from 'ol/layer/VectorTile.js';
-import VectorTileSource from 'ol/source/VectorTile.js';
-import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
+
+
+import 'ol/ol.css';
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import OSM from 'ol/source/OSM';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import GeoJSON from 'ol/format/GeoJSON';
+import { Fill, Stroke, Style } from 'ol/style';
+import TextButton from 'ol-ext/control/TextButton';
+import {Circle as CircleStyle } from 'ol/style.js';
+//import LayerSwitcher from 'ol-layerswitcher';
+import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
+import Bar from 'ol-ext/control/Bar';
+import FullScreen from 'ol/control/FullScreen';
+import ZoomToExtent from 'ol/control/ZoomToExtent';
+import Rotate from 'ol/control/Rotate';
+import Toggle from 'ol-ext/control/Toggle'; // Importieren Sie Toggle
+import { Draw, Modify, Select } from 'ol/interaction'; // Importieren Sie Draw
+
+
 import * as LoadingStrategy from 'ol/loadingstrategy';
 import * as proj from 'ol/proj';
-import SearchNominatim from 'ol-ext/control/SearchNominatim';
-import VectorSource from 'ol/source/Vector';
-
-import Icon from 'ol/style/Icon'; // Hinzufügen Sie diesen Import
 
 
+import LayerGroup from 'ol/layer/Group';
+import { Circle } from 'ol/geom';
 
-const attribution = new Attribution({
-  collapsible: false,
-  html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+/* // Erstellung des Layer-Switchers
+var layerSwitcher = new LayerSwitcher({
+  activationMode: 'click'
 });
+ */
 
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
@@ -33,103 +42,194 @@ const mapView = new View({
 const map = new Map({
   target: "map",
   view: mapView,
-  controls: defaultControls().extend([
-    new FullScreen(),
-    new ZoomToExtent({
-      extent: [727361, 6839277, 858148, 6990951] // Geben Sie hier das Ausdehnungsintervall an
-    }),
-    attribution // Fügen Sie hier Ihre benutzerdefinierte Attribution-Steuerung hinzu
-  ]),
-  
 });
 
-// Fügen Sie die SearchNominatim-Steuerung zur Karte hinzu
-
+var layerSwitcher = new LayerSwitcher({activationMode: 'click' });
+map.addControl(layerSwitcher);
 
 const osmTileCr = new TileLayer({
   title: "osm-color",
   type: 'base',
   source: new OSM({
-      url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
+    url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   }),
   visible: true,
-  opacity: 0.75
+  opacity: 1
 });
 
-map.addLayer(osmTileCr);
-
-// Current selection
-var sLayer = new VectorLayer({
-  source: new VectorSource(),
-  style: new Style({ image: new CircleStyle({radius: 5,stroke: new Stroke ({color: 'rgb(255,165,0)', width: 3 }),fill: new Fill({color: 'rgba(255,165,0,.3)' })      }),
-      stroke: new Stroke ({
-          color: 'rgb(255,165,0)',
-          width: 3
-      }),
-      fill: new Fill({
-          color: 'rgba(255,165,0,.3)'
-      })
+const gew_layer_layer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: './Layer/gew.geojson', // Verwenden Sie ein festes URL-Format
+    strategy: LoadingStrategy.bbox 
+  }),
+  title: 'gew', // Titel für den Layer-Switcher
+  name: 'gew',
+  style: new Style({
+    fill: new Fill({ color: 'rgba(0, 28, 240, 0.4)' }),
+    stroke: new Stroke({ color: 'blue', width: 2 })
   })
 });
-map.addLayer(sLayer);
 
-// Set the search control 
-var search = new SearchNominatim (
-  {   //target: $(".options").get(0),
-    
-      polygon: $("#polygon").prop("checked"),
-      //placeholder: 'Suche nach Adresse', // Platzhaltertext für das Suchfeld
-      position: true,  // Search, with priority to geo position
-      reverse: true,
-      
-  });
-map.addControl (search);
+var mainBar = new Bar();
+map.addControl(mainBar);
+mainBar.setPosition('top-left');
+mainBar.addControl(new FullScreen());
+mainBar.addControl(new ZoomToExtent({
+  extent: [727361, 6839277, 858148, 6990951] // Geben Sie hier das Ausdehnungsintervall an
+}));
+mainBar.addControl(new Rotate());
 
-// Select feature when click on the reference index
-search.on('select', function(e)
-  {   // console.log(e);
-      sLayer.getSource().clear();
-      // Check if we get a geojson to describe the search
-      if (e.search.geojson) {
-          var format = new ol.format.GeoJSON();
-          var f = format.readFeature(e.search.geojson, { dataProjection: "EPSG:4326", featureProjection: map.getView().getProjection() });
-          sLayer.getSource().addFeature(f);
-          var view = map.getView();
-          var resolution = view.getResolutionForExtent(f.getGeometry().getExtent(), map.getSize());
-          var zoom = view.getZoomForResolution(resolution);
-          var center = ol.extent.getCenter(f.getGeometry().getExtent());
-          // redraw before zoom
-          setTimeout(function(){
-                  view.animate({
-                  center: center,
-                  zoom: Math.min (zoom, 16)
-              });
-          }, 100);
-      }
-      else {
-          map.getView().animate({
-              center:e.coordinate,
-              zoom: Math.max (map.getView().getZoom(),16)
-          });
-      }
-      // Füge den Marker hinzu
-      addMarker(e.coordinate);
-  });
+function CreateMyControlBar() {
+  var mainBarCustom = new Bar();
+  map.addControl(mainBarCustom);
+  mainBarCustom.setPosition('left');
 
-// Funktion zum Hinzufügen eines Markers
-function addMarker(coordinates) {
-  var marker = new Feature({
-    geometry: new Point(coordinates)
+  var styleDrawing = new Style({
+    fill: new Fill({
+      color: 'rgba(0, 142, 2, 0.5)',
+    }),
+    stroke: new Stroke({
+      color: '#008e02',
+      width: 5
+    }),
+    image: new CircleStyle({
+      radius: 5,
+      fill: new Fill({
+        color: '#008e02'
+      }),
+      stroke: new Stroke({
+        color: 'rgba(0, 142, 2, 0.5)',
+        width: 2,
+      })
+    })
+  }); 
+
+
+  var myMainBar = new Bar({
+    group: true,
+    toggleOne: true,
   });
-  var markerStyle = new Style({
-    image: new Icon({
-      src: 'data/marker.svg', // Pfad zur Bilddatei
-      //scale: 0.5 // Skalierung des Bildes
+  mainBarCustom.addControl(myMainBar);
+  
+  var vectorSource = new VectorSource();
+  var vector = new VectorLayer({
+    source: vectorSource,
+    title: 'Punkte',
+    displayInLayerSwitcher: false,
+    style: styleDrawing,
+  });
+  map.addLayer(vector);
+  /* 
+  var istModify = false;
+  if(istModify=true){
+  var controlModification = new Modify({
+
+    source: vector.getSource()
+  });
+  map.addInteraction(controlModification);
+  } */
+
+  var controlPun = new Toggle({
+    title: 'Punkt',
+    html: '<button><span>P</span></button>', 
+    interaction: new Draw({ 
+      type: 'Point',
+      source: vectorSource, 
+    }),
+  });
+  myMainBar.addControl(controlPun);
+  
+  var controlLin = new Toggle({
+    title: 'Linie',
+    html: '<button><span>L</span></button>', 
+    interaction: new Draw({ 
+      type: 'LineString',
+      source: vectorSource, 
+    }),
+    bar:  new Bar({
+      controls:[
+        new TextButton({
+         title: 'rückgängig',
+         html: 'rückgängi',
+         handleClick: function(){
+          controlLin.getInteraction().removeLastPoint();
+         }
+        }),
+        new TextButton({
+          title: 'Beenden',
+          html: 'Beenden',
+          handleClick: function(){
+           controlLin.getInteraction().finishDrawing();
+          }
+        })
+      ]
     })
   });
-  marker.setStyle(markerStyle);
-  sLayer.getSource().clear(); // Löscht vorherige Marker
-  sLayer.getSource().addFeature(marker);
+  myMainBar.addControl(controlLin);
+  
+  var controlFl = new Toggle({
+    title: 'Flaeche',
+    html: '<button><span>F</span></button>', 
+    interaction: new Draw({ 
+      type: 'Polygon',
+      source: vectorSource, 
+    }),
+    bar:  new Bar({
+      controls:[
+        new TextButton({
+         title: 'rückgängig',
+         html: 'rückgängig',
+         handleClick: function(){
+          controlFl.getInteraction().removeLastPoint();
+         }
+        }),
+        new TextButton({
+          title: 'Beenden',
+          html: 'Beenden',
+          handleClick: function(){
+           controlFl.getInteraction().finishDrawing();
+          }
+        })
+      ]
+
+    })
+  });
+  myMainBar.addControl(controlFl);
+  
+  
+  var controlSelect = new Toggle({
+    title: 'Element auswählen',
+    html: '<button><span>D</span></button>', 
+    interaction: new Select(), 
+    bar: new Bar({
+      controls: [
+        new TextButton({
+        title: 'löschen',
+        html: 'löschen',
+        handleClick: function()
+          {
+            
+            var features = controlSelect.getInteraction().getFeatures(); 
+            if(features.getLength())
+            {
+            
+            
+            for(var i=0,f;f=features.item(i);i++){
+              vector.getSource().removeFeature(f);
+            }
+            controlSelect.getInteraction().getFeatures().clear();
+            }
+          }
+        })
+      ]  
+    }),
+  })
+  
+  myMainBar.addControl(controlSelect);
 };
 
+
+map.addLayer(osmTileCr);
+map.addLayer(gew_layer_layer);
+CreateMyControlBar();
