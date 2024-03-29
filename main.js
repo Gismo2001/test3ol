@@ -1,5 +1,3 @@
-
-
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -7,32 +5,33 @@ import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import GeoJSON from 'ol/format/GeoJSON';
+import GeoJSON from 'ol/format/GeoJSON.js';
 import { Fill, Stroke, Style } from 'ol/style';
-import TextButton from 'ol-ext/control/TextButton';
-import {Circle as CircleStyle } from 'ol/style.js';
-//import LayerSwitcher from 'ol-layerswitcher';
-import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
-import Bar from 'ol-ext/control/Bar';
+
 import FullScreen from 'ol/control/FullScreen';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
 import Rotate from 'ol/control/Rotate';
-import Toggle from 'ol-ext/control/Toggle'; // Importieren Sie Toggle
 import { Draw, Modify, Select } from 'ol/interaction'; // Importieren Sie Draw
+import Polygon from 'ol/geom/Polygon.js';
+import LineString from 'ol/geom/LineString';
 
+
+import TextButton from 'ol-ext/control/TextButton';
+import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
+import Bar from 'ol-ext/control/Bar';
+import Button from 'ol-ext/control/Button';
+import Toggle from 'ol-ext/control/Toggle'; // Importieren Sie Toggle
+import '@fortawesome/fontawesome-free/css/all.css';
 
 import * as LoadingStrategy from 'ol/loadingstrategy';
 import * as proj from 'ol/proj';
 
 
-import LayerGroup from 'ol/layer/Group';
-import { Circle } from 'ol/geom';
-
-/* // Erstellung des Layer-Switchers
+/// Erstellung des Layer-Switchers
 var layerSwitcher = new LayerSwitcher({
   activationMode: 'click'
 });
- */
+ 
 
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
@@ -43,9 +42,6 @@ const map = new Map({
   target: "map",
   view: mapView,
 });
-
-var layerSwitcher = new LayerSwitcher({activationMode: 'click' });
-map.addControl(layerSwitcher);
 
 const osmTileCr = new TileLayer({
   title: "osm-color",
@@ -58,178 +54,204 @@ const osmTileCr = new TileLayer({
 });
 
 const gew_layer_layer = new VectorLayer({
-  source: new VectorSource({
-    format: new GeoJSON(),
-    url: './Layer/gew.geojson', // Verwenden Sie ein festes URL-Format
-    strategy: LoadingStrategy.bbox 
-  }),
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gew.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
   title: 'gew', // Titel für den Layer-Switcher
   name: 'gew',
   style: new Style({
-    fill: new Fill({ color: 'rgba(0, 28, 240, 0.4)' }),
+    fill: new Fill({ color: 'rgba(0,28, 240, 0.4)' }),
     stroke: new Stroke({ color: 'blue', width: 2 })
   })
 });
 
-var mainBar = new Bar();
-map.addControl(mainBar);
-mainBar.setPosition('top-left');
-mainBar.addControl(new FullScreen());
-mainBar.addControl(new ZoomToExtent({
-  extent: [727361, 6839277, 858148, 6990951] // Geben Sie hier das Ausdehnungsintervall an
-}));
-mainBar.addControl(new Rotate());
 
-function CreateMyControlBar() {
-  var mainBarCustom = new Bar();
-  map.addControl(mainBarCustom);
-  mainBarCustom.setPosition('left');
-
-  var styleDrawing = new Style({
-    fill: new Fill({
-      color: 'rgba(0, 142, 2, 0.5)',
-    }),
-    stroke: new Stroke({
-      color: '#008e02',
-      width: 5
-    }),
-    image: new CircleStyle({
-      radius: 5,
-      fill: new Fill({
-        color: '#008e02'
-      }),
-      stroke: new Stroke({
-        color: 'rgba(0, 142, 2, 0.5)',
-        width: 2,
-      })
-    })
-  }); 
-
-
-  var myMainBar = new Bar({
-    group: true,
-    toggleOne: true,
-  });
-  mainBarCustom.addControl(myMainBar);
-  
-  var vectorSource = new VectorSource();
-  var vector = new VectorLayer({
-    source: vectorSource,
-    title: 'Punkte',
-    displayInLayerSwitcher: false,
-    style: styleDrawing,
-  });
-  map.addLayer(vector);
-  /* 
-  var istModify = false;
-  if(istModify=true){
-  var controlModification = new Modify({
-
-    source: vector.getSource()
-  });
-  map.addInteraction(controlModification);
-  } */
-
-  var controlPun = new Toggle({
-    title: 'Punkt',
-    html: '<button><span>P</span></button>', 
-    interaction: new Draw({ 
-      type: 'Point',
-      source: vectorSource, 
-    }),
-  });
-  myMainBar.addControl(controlPun);
-  
-  var controlLin = new Toggle({
-    title: 'Linie',
-    html: '<button><span>L</span></button>', 
-    interaction: new Draw({ 
-      type: 'LineString',
-      source: vectorSource, 
-    }),
-    bar:  new Bar({
-      controls:[
-        new TextButton({
-         title: 'rückgängig',
-         html: 'rückgängi',
-         handleClick: function(){
-          controlLin.getInteraction().removeLastPoint();
-         }
-        }),
-        new TextButton({
-          title: 'Beenden',
-          html: 'Beenden',
-          handleClick: function(){
-           controlLin.getInteraction().finishDrawing();
-          }
-        })
-      ]
-    })
-  });
-  myMainBar.addControl(controlLin);
-  
-  var controlFl = new Toggle({
-    title: 'Flaeche',
-    html: '<button><span>F</span></button>', 
-    interaction: new Draw({ 
-      type: 'Polygon',
-      source: vectorSource, 
-    }),
-    bar:  new Bar({
-      controls:[
-        new TextButton({
-         title: 'rückgängig',
-         html: 'rückgängig',
-         handleClick: function(){
-          controlFl.getInteraction().removeLastPoint();
-         }
-        }),
-        new TextButton({
-          title: 'Beenden',
-          html: 'Beenden',
-          handleClick: function(){
-           controlFl.getInteraction().finishDrawing();
-          }
-        })
-      ]
-
-    })
-  });
-  myMainBar.addControl(controlFl);
-  
-  
-  var controlSelect = new Toggle({
-    title: 'Element auswählen',
-    html: '<button><span>D</span></button>', 
-    interaction: new Select(), 
-    bar: new Bar({
-      controls: [
-        new TextButton({
-        title: 'löschen',
-        html: 'löschen',
-        handleClick: function()
-          {
-            
-            var features = controlSelect.getInteraction().getFeatures(); 
-            if(features.getLength())
-            {
-            
-            
-            for(var i=0,f;f=features.item(i);i++){
-              vector.getSource().removeFeature(f);
-            }
-            controlSelect.getInteraction().getFeatures().clear();
-            }
-          }
-        })
-      ]  
-    }),
-  })
-  
-  myMainBar.addControl(controlSelect);
-};
-
+map.addControl(layerSwitcher);
 
 map.addLayer(osmTileCr);
 map.addLayer(gew_layer_layer);
-CreateMyControlBar();
+
+// Stildefinition für Linien
+var lineStyle = new Style({
+  stroke: new Stroke({
+    color: 'blue', // Farbe der Linien
+    width: 5 // Strichstärke in Pixeln
+  })
+});
+
+// Vector layer mit benutzerdefiniertem Stil
+var vector = new VectorLayer({
+  source: new VectorSource(),
+  style: lineStyle // Verwendung des benutzerdefinierten Stils für alle Linien im Layer
+});
+
+
+ 
+ // Main control bar
+ var mainbar = new Bar();
+ mainbar.setPosition('top-left');
+ map.addControl(mainbar);
+
+ // Edit control bar 
+ var editbar = new Bar({
+   toggleOne: true,	// one control active at the same time
+   group:false			// group controls together
+ });
+ mainbar.addControl(editbar);
+
+ // Add selection tool:
+ //  1- a toggle control with a select interaction
+ //  2- an option bar to delete / get information on the selected feature
+ var sbar = new Bar();
+ sbar.addControl (new Button({
+   html: '<i class="fa fa-times"></i>',
+   title: "Delete",
+   handleClick: function() {
+     var features = selectCtrl.getInteraction().getFeatures();
+     if (!features.getLength()) info("Select an object first...");
+     else info(features.getLength()+" object(s) deleted.");
+     for (var i=0, f; f=features.item(i); i++) {
+       vector.getSource().removeFeature(f);
+     }
+     selectCtrl.getInteraction().getFeatures().clear();
+   }
+ }));
+ sbar.addControl (new Button({
+   html: '<i class="fa fa-info"></i>',
+   title: "Show informations",
+   handleClick: function() {
+     switch (selectCtrl.getInteraction().getFeatures().getLength()){
+       case 0: info("Select an object first...");
+         break;
+       case 1:
+         var f = selectCtrl.getInteraction().getFeatures().item(0);
+         info("Selection is a "+f.getGeometry().getType());
+         function info(i){
+          alert(i || "");
+         }
+         break;
+       default:
+         info(selectCtrl.getInteraction().getFeatures().getLength()+ " objects seleted.");
+         break;
+     }
+   }
+ }));
+
+ var selectCtrl = new Toggle({
+   html: '<i class="fa fa-hand-pointer-o"></i>',
+   title: "Select",
+   interaction: new Select ({ hitTolerance: 2 }),
+   bar: sbar,
+   autoActivate:true,
+   active:true
+ });
+
+ editbar.addControl (selectCtrl);
+
+ // Add editing tools
+ var pedit = new Toggle({
+   html: '<i class="fa fa-map-marker" ></i>',
+   title: 'Point',
+   interaction: new Draw({
+     type: 'Point',
+     source: vector.getSource()
+   })
+ });
+ editbar.addControl ( pedit );
+
+ var ledit = new Toggle({
+   html: '<i class="fa fa-share-alt" ></i>',
+   title: 'LineString',
+   interaction: new Draw({
+     type: 'LineString',
+     source: vector.getSource(),
+     // Count inserted points
+     geometryFunction: function(coordinates, geometry) {
+         if (geometry) geometry.setCoordinates(coordinates);
+       else geometry = new LineString(coordinates);
+       this.nbpts = geometry.getCoordinates().length;
+       return geometry;
+     },
+     
+   }),
+   // Options bar associated with the control
+   bar: new Bar({
+     controls:[ 
+       new TextButton({
+         html: 'undo',
+         title: "Delete last point",
+         handleClick: function() {
+           if (ledit.getInteraction().nbpts>1) ledit.getInteraction().removeLastPoint();
+         }
+       }),
+       new TextButton({
+         html: 'Finish',
+         title: "finish",
+         handleClick: function() {
+           // Prevent null objects on finishDrawing
+          
+           if (ledit.getInteraction().nbpts>2) ledit.getInteraction().finishDrawing();
+         }
+       })
+     ]
+   }) 
+ });
+
+ editbar.addControl ( ledit );
+
+ var fedit = new Toggle({
+   html: '<i class="fa fa-bookmark-o fa-rotate-270" ></i>',
+     title: 'Polygon',
+     interaction: new Draw({
+       type: 'Polygon',
+       source: vector.getSource(),
+       // Count inserted points
+       geometryFunction: function(coordinates, geometry) {
+         this.nbpts = coordinates[0].length;
+         if (geometry) geometry.setCoordinates([coordinates[0].concat([coordinates[0][0]])]);
+         else geometry = new Polygon(coordinates);
+         return geometry;
+       }
+      }),
+     // Options bar ssociated with the control
+     bar: new Bar({
+       controls:[ new TextButton({
+         html: 'undo',//'<i class="fa fa-mail-reply"></i>',
+         title: "undo last point",
+         handleClick: function() {
+           if (fedit.getInteraction().nbpts>1) fedit.getInteraction().removeLastPoint();
+         }
+       }),
+       new TextButton({
+         html: 'finish',
+         title: "finish",
+         handleClick: function() {
+           // Prevent null objects on finishDrawing
+           if (fedit.getInteraction().nbpts>3) fedit.getInteraction().finishDrawing();
+         }
+       })
+     ]
+   }) 
+ });
+ editbar.addControl ( fedit );
+
+ // Add a simple push button to save features
+ var save = new Button({
+   html: '<i class="fa fa-download"></i>',
+   title: "Save",
+   handleClick: function(e) {
+     var json= new GeoJSON().writeFeatures(vector.getSource().getFeatures());
+     info(json);
+   }
+ });
+ mainbar.addControl ( save );
+
+/* 
+ // Show info
+ function info(i){
+   $("#info").html(i||"");
+ } */
+
+function info(i){
+  alert(i || "");
+}
+
+ map.addLayer(vector);
