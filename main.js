@@ -7,7 +7,7 @@ import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import GeoJSON from 'ol/format/GeoJSON';
+import GeoJSON from 'ol/format/GeoJSON.js';
 import { Fill, Stroke, Style } from 'ol/style';
 import TextButton from 'ol-ext/control/TextButton';
 import {Circle as CircleStyle } from 'ol/style.js';
@@ -64,14 +64,10 @@ const gew_layer_layer = new VectorLayer({
   })
 });
 
-var mainBar = new Bar();
-map.addControl(mainBar);
-mainBar.setPosition('top-left');
-mainBar.addControl(new FullScreen());
-mainBar.addControl(new ZoomToExtent({extent: [727361, 6839277, 858148, 6990951]}));
-mainBar.addControl(new Rotate());
 
-var selAction = false;
+ 
+var controlModification; // Globale Variable für die Interaktion
+
 function CreateMyControlBar() {
   var mainBarCustom = new Bar();
   map.addControl(mainBarCustom);
@@ -96,6 +92,7 @@ function CreateMyControlBar() {
       })
     })
   }); 
+
   var myMainBar = new Bar({
     group: true,
     toggleOne: true,
@@ -111,20 +108,9 @@ function CreateMyControlBar() {
   });
   map.addLayer(vector);
 
-  /* 
-  var istModify = false;
-  if(istModify=true){
-  } */
+  controlModification = new Modify({source: vector.getSource() });
+  map.addInteraction(controlModification);
   
-  
-  var controlModification = new Modify({source: vector.getSource() });
-  if (selAction===false) {
-    map.addInteraction(controlModification);
-  } else {
-    map.removeInteraction(controlModification);
-  }
-
-
   var controlPun = new Toggle({
     title: 'Punkt',
     html: '<i class="fa fa-map-marker" ></i>',
@@ -192,7 +178,6 @@ function CreateMyControlBar() {
   });
   myMainBar.addControl(controlFl);
   
-  
   var controlSelect = new Toggle({
     title: 'Element auswählen',
     html: '<i class="fa fa-hand-pointer-o"></i>',
@@ -200,8 +185,13 @@ function CreateMyControlBar() {
     //active: false,
     onToggle: function(active) 
       {
-        console.log("sel ist ausgewählt");
-        selAction=true;
+        if (active) {
+          console.log("Element auswählen ist aktiviert");
+          map.removeInteraction(controlModification);
+        } else {
+          console.log("Element auswählen ist deaktiviert");
+          map.addInteraction(controlModification);
+        }
       },
     bar: new Bar({
       controls: [
@@ -225,7 +215,6 @@ function CreateMyControlBar() {
   
   myMainBar.addControl(controlSelect);
 };
-
 
 map.addLayer(osmTileCr);
 //map.addLayer(gew_layer_layer);
