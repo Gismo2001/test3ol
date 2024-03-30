@@ -228,5 +228,5 @@ function CreateMyControlBar() {
 
 
 map.addLayer(osmTileCr);
-map.addLayer(gew_layer_layer);
+//map.addLayer(gew_layer_layer);
 CreateMyControlBar();

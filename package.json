@@ -7,14 +7,12 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "vite": "^5.1.4"
+    "vite": "^5.1.5"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.5.1",
-    "geojson-vt": "^3.2.1",
-    "ol": "^9.0.0",
+    "jspdf": "^2.5.1",
+    "ol": "9.0.0",
     "ol-ext": "^4.0.17",
-    "ol-layerswitcher": "^4.1.1",
-    "proj4": "^2.10.0"
+    "proj4": "^2.11.0"
   }
 }
