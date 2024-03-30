@@ -1,27 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mouse Position</title>
-  <link rel="stylesheet" href="./style.css" />
+  <head>
+    <meta charset="UTF-8">
+    <title>GB1 Map</title>
+    <link rel="stylesheet" href="./node_modules/ol/ol.css" type="text/css">
+    <link rel="stylesheet" href="node_modules/ol-ext/dist/ol-ext.css">
    <!-- jQuery -->
    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
    <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  
-  <link rel="stylesheet" href="./node_modules/ol/ol.css" type="text/css">
-  <link rel="stylesheet" href="./node_modules/ol-ext/dist/ol-ext.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+   <link rel="stylesheet" href="./style.css" type="text/css"> <!-- Referenz zur neuen CSS-Datei -->
    <link rel="stylesheet" href="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.css">
+    
+  </head>
   
-</head>
-<body>
-  <div id="map" class="map"></div>
-  <div id="info"></div>
-  <script src="https://cdn.jsdelivr.net/npm/ol@6.10.0/dist/ol.js"></script>
- 
-  
-  <!-- Verwenden Sie das entsprechende JavaScript-Modul für ol-ext, wenn Sie es benötigen -->
-  <script type="module" src="main.js"></script>
-</body>
+  <body>
+    <div id="map" class="map"></div>
+    <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script> 
+    <script src="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.js"></script>
+    <script type="module" src="main.js"></script>
+
+  </body>
 </html>
+
