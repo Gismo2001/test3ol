@@ -12,5 +12,6 @@
   
   <circle class="fil0 str0" cx=".87" cy=".87" r=".785" style="fill:#fff"/>
   <rect class="fil1" x=".54" y=".522" width=".6525" height=".6525"/>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
  </g>
 </svg>

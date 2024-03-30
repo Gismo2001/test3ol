@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="format-detection" content="telephone=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" /> 
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="Openlayers control to handle geolocation." />
+    <meta name="keywords" content="Openlayers, ol, control, GPS, location, geolocation" />
+    <link rel="icon" type="image/png" href="https://openlayers.org/assets/theme/img/logo70.png" />
+    <!-- android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="translucent-black">
+    <link rel="apple-touch-icon" href="https://openlayers.org/assets/theme/img/logo70.png" />
+    <link rel="apple-touch-startup-image" href="https://openlayers.org/assets/theme/img/logo70.png" />
+
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+     <!-- meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" /> -->
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
     <title>GB1 Map</title>
     <link rel="stylesheet" href="./node_modules/ol/ol.css" type="text/css">
     <link rel="stylesheet" href="node_modules/ol-ext/dist/ol-ext.css">
@@ -13,14 +26,16 @@
    <!-- FontAwesome -->
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
    <link rel="stylesheet" href="./style.css" type="text/css"> <!-- Referenz zur neuen CSS-Datei -->
-   <link rel="stylesheet" href="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.css">
+   <link rel="stylesheet" href="./node_modules/ol-ext/control/LayerSwitcher.css">
+   
+   
     
   </head>
   
   <body>
     <div id="map" class="map"></div>
     <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script> 
-    <script src="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.js"></script>
+    <!-- <script src="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.js"></script> -->
     <script type="module" src="main.js"></script>
 
   </body>

@@ -1,5 +1,3 @@
-
-
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -7,34 +5,59 @@ import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import GeoJSON from 'ol/format/GeoJSON.js';
+import GeoJSON from 'ol/format/GeoJSON';
 import { Fill, Stroke, Style } from 'ol/style';
 import TextButton from 'ol-ext/control/TextButton';
+import GeolocationButton from 'ol-ext/control/GeolocationButton';
 import {Circle as CircleStyle } from 'ol/style.js';
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
+import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
+import { DragRotateAndZoom } from 'ol/interaction.js';
+import { defaults as defaultInteractions } from 'ol/interaction.js';
+
 import Bar from 'ol-ext/control/Bar';
-import FullScreen from 'ol/control/FullScreen';
-import ZoomToExtent from 'ol/control/ZoomToExtent';
-import Rotate from 'ol/control/Rotate';
 import Toggle from 'ol-ext/control/Toggle'; // Importieren Sie Toggle
 import { Draw, Modify, Select } from 'ol/interaction'; // Importieren Sie Draw
-
 
 import * as LoadingStrategy from 'ol/loadingstrategy';
 import * as proj from 'ol/proj';
 
-
 import LayerGroup from 'ol/layer/Group';
 import { Circle } from 'ol/geom';
+import { 
+  sleStyle,
+  getStyleForArtSonPun,
+  getStyleForArtEin,
+  queStyle,
+  dueStyle,
+  wehStyle,
+  bru_nlwknStyle,
+  bru_andereStyle,
+  
+} from './extStyle';
+
+const attribution = new Attribution({
+  collapsible: false,
+  html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+});
+
 
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
-  zoom: 9
+  zoom: 9,
 });
 
 const map = new Map({
   target: "map",
   view: mapView,
+  controls: defaultControls().extend([
+    new FullScreen(),
+    new ZoomToExtent({
+       extent: [727361, 6839277, 858148, 6990951] // Geben Sie hier das Ausdehnungsintervall an
+     }),
+    attribution // Fügen Sie hier Ihre benutzerdefinierte Attribution-Steuerung hinzu
+  ]),
+  interactions: defaultInteractions().extend([new DragRotateAndZoom()])
 });
 
 var layerSwitcher = new LayerSwitcher({activationMode: 'click' });
@@ -53,7 +76,7 @@ const osmTileCr = new TileLayer({
 const gew_layer_layer = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
-    url: './Layer/gew.geojson', // Verwenden Sie ein festes URL-Format
+    url: './myLayers/gew.geojson', // Verwenden Sie ein festes URL-Format
     strategy: LoadingStrategy.bbox 
   }),
   title: 'gew', // Titel für den Layer-Switcher
@@ -64,6 +87,90 @@ const gew_layer_layer = new VectorLayer({
   })
 });
 
+const exp_bw_son_pun_layer = new VectorLayer({
+  source: new VectorSource({
+  format: new GeoJSON(),
+  url: function (extent) {return './myLayers/exp_bw_son_pun.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Sonstige, Punkte', 
+  name: 'son_pun', 
+  style: getStyleForArtSonPun,
+  visible: false
+});
+const exp_bw_ein_layer = new VectorLayer({
+  source: new VectorSource({
+  format: new GeoJSON(),
+  url: function (extent) {return './myLayers/exp_bw_ein.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Einläufe', 
+  name: 'ein', 
+  style: getStyleForArtEin,
+  visible: false
+});
+const exp_bw_que_layer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: function (extent) {
+      return './myLayers/exp_bw_que.geojson' + '?bbox=' + extent.join(',');
+    },
+    strategy: LoadingStrategy.bbox
+  }),
+  title: 'Querung', 
+  name: 'que', // Titel für den Layer-Switcher
+  style: queStyle,
+  visible: false
+});
+const exp_bw_due_layer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: function (extent) {
+      return './myLayers/exp_bw_due.geojson' + '?bbox=' + extent.join(',');
+    },
+    strategy: LoadingStrategy.bbox
+  }),
+  title: 'Düker', // Titel für den Layer-Switcher
+  name: 'due', // Titel für den Layer-Switcher
+  style: dueStyle,
+  visible: false
+});
+const exp_bw_weh_layer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: function (extent) {
+      return './myLayers/exp_bw_weh.geojson' + '?bbox=' + extent.join(',');
+    },
+    strategy: LoadingStrategy.bbox
+  }),
+  title: 'Wehr', // Titel für den Layer-Switcher
+  name: 'weh', // Titel für den Layer-Switcher
+  style: wehStyle,
+  visible: false
+});
+const exp_bw_bru_nlwkn_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_bw_bru_nlwkn.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Brücke (NLWKN)', 
+  name: 'bru_nlwkn', // Titel für den Layer-Switcher
+  style: bru_nlwknStyle,
+  visible: false
+});
+const exp_bw_bru_andere_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_bw_bru_andere.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Brücke (andere)', 
+  name: 'bru_andere', 
+  style: bru_andereStyle,
+  visible: false
+});
+const exp_bw_sle_layer = new VectorLayer({
+  source: new VectorSource({
+    format: new GeoJSON(),
+    url: function (extent) {
+      return './myLayers/exp_bw_sle.geojson' + '?bbox=' + extent.join(',');
+    },
+    strategy: LoadingStrategy.bbox
+  }),
+  title: 'Schleuse', // Titel für den Layer-Switcher
+  name: 'sle', // Titel für den Layer-Switcher
+  style: sleStyle,
+  visible: true
+});
 
  
 var controlModification; // Globale Variable für die Interaktion
@@ -216,6 +323,31 @@ function CreateMyControlBar() {
   myMainBar.addControl(controlSelect);
 };
 
+//---------------------------------------------Layergruppen
+const BwGroupP = new LayerGroup({
+  title: "Bauw.(P)",
+  fold: true,
+  fold: 'close',  
+  layers: [ exp_bw_son_pun_layer, exp_bw_ein_layer, exp_bw_bru_andere_layer, exp_bw_bru_nlwkn_layer, exp_bw_que_layer, exp_bw_due_layer, exp_bw_weh_layer, exp_bw_sle_layer]
+});
+
 map.addLayer(osmTileCr);
-//map.addLayer(gew_layer_layer);
+map.addLayer(gew_layer_layer);
+map.addLayer(BwGroupP);
 CreateMyControlBar();
+
+    // Add control
+  var geoloc = new GeolocationButton({
+    title: 'Where am I?',
+    delay: 2000 // 2s
+  });
+    map.addControl(geoloc);
+    
+    // Show position
+    var here = new Popup({ positioning: 'bottom-center' });
+    map.addOverlay(here);
+    geoloc.on('position', function(e) {
+      if (e.coordinate) here.show(e.coordinate, "You are<br/>here!");
+      else here.hide();
+    });
+
