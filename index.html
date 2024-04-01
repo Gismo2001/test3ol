@@ -28,7 +28,18 @@
    <link rel="stylesheet" href="./style.css" type="text/css"> <!-- Referenz zur neuen CSS-Datei -->
    <link rel="stylesheet" href="./node_modules/ol-ext/control/LayerSwitcher.css">
    
-   
+<!-- Geolocation only works on https -->
+<script>
+  if (location.protocol == 'http:' && !/^localhost/.test(location.host)) {
+    location.href = window.location.href.replace(/^http:/,"https:");
+  }
+</script>
+
+   <style>
+    .ol-popup {
+      text-align: center;
+    }
+  </style>
     
   </head>
   

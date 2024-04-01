@@ -7,8 +7,17 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Fill, Stroke, Style } from 'ol/style';
+
 import TextButton from 'ol-ext/control/TextButton';
+import Overlay from 'ol-ext/control/Overlay';
+import Tooltip from 'ol-ext/overlay/Tooltip';
+import Popup from 'ol-ext/overlay/Popup';
+import Notification from 'ol-ext/control/Notification';
+import EditBar from 'ol-ext/control/EditBar';
+
+
 import GeolocationButton from 'ol-ext/control/GeolocationButton';
+import GeolocationDraw from 'ol-ext/interaction/GeolocationDraw';
 import {Circle as CircleStyle } from 'ol/style.js';
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
 import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
@@ -18,6 +27,8 @@ import { defaults as defaultInteractions } from 'ol/interaction.js';
 import Bar from 'ol-ext/control/Bar';
 import Toggle from 'ol-ext/control/Toggle'; // Importieren Sie Toggle
 import { Draw, Modify, Select } from 'ol/interaction'; // Importieren Sie Draw
+
+
 
 import * as LoadingStrategy from 'ol/loadingstrategy';
 import * as proj from 'ol/proj';
@@ -72,7 +83,6 @@ const osmTileCr = new TileLayer({
   visible: true,
   opacity: 1
 });
-
 const gew_layer_layer = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
@@ -86,7 +96,6 @@ const gew_layer_layer = new VectorLayer({
     stroke: new Stroke({ color: 'blue', width: 2 })
   })
 });
-
 const exp_bw_son_pun_layer = new VectorLayer({
   source: new VectorSource({
   format: new GeoJSON(),
@@ -173,155 +182,7 @@ const exp_bw_sle_layer = new VectorLayer({
 });
 
  
-var controlModification; // Globale Variable für die Interaktion
 
-function CreateMyControlBar() {
-  var mainBarCustom = new Bar();
-  map.addControl(mainBarCustom);
-  mainBarCustom.setPosition('left');
-
-  var styleDrawing = new Style({
-    fill: new Fill({
-      color: 'rgba(0, 142, 2, 0.5)',
-    }),
-    stroke: new Stroke({
-      color: '#008e02',
-      width: 5
-    }),
-    image: new CircleStyle({
-      radius: 5,
-      fill: new Fill({
-        color: '#008e02'
-      }),
-      stroke: new Stroke({
-        color: 'rgba(0, 142, 2, 0.5)',
-        width: 2,
-      })
-    })
-  }); 
-
-  var myMainBar = new Bar({
-    group: true,
-    toggleOne: true,
-  });
-  mainBarCustom.addControl(myMainBar);
-  
-  var vectorSource = new VectorSource();
-  var vector = new VectorLayer({
-    source: vectorSource,
-    title: 'Punkte',
-    displayInLayerSwitcher: false,
-    style: styleDrawing,
-  });
-  map.addLayer(vector);
-
-  controlModification = new Modify({source: vector.getSource() });
-  map.addInteraction(controlModification);
-  
-  var controlPun = new Toggle({
-    title: 'Punkt',
-    html: '<i class="fa fa-map-marker" ></i>',
-    interaction: new Draw({ 
-      type: 'Point',
-      source: vectorSource, 
-    }),
-  });
-  myMainBar.addControl(controlPun);
-  
-  var controlLin = new Toggle({
-    title: 'Linie',
-    html: '<i class="fa fa-share-alt" ></i>',
-    interaction: new Draw({ 
-      type: 'LineString',
-      source: vectorSource, 
-    }),
-    bar:  new Bar({
-      controls:[
-        new TextButton({
-         title: 'rückgängig',
-         html: 'rückgängi',
-         handleClick: function(){
-          controlLin.getInteraction().removeLastPoint();
-         }
-        }),
-        new TextButton({
-          title: 'Beenden',
-          html: 'Beenden',
-          handleClick: function(){
-           controlLin.getInteraction().finishDrawing();
-          }
-        })
-      ]
-    })
-  });
-  myMainBar.addControl(controlLin);
-  
-  var controlFl = new Toggle({
-    title: 'Flaeche',
-    html: '<i class="fa fa-bookmark-o fa-rotate-270" ></i>',
-    interaction: new Draw({ 
-      type: 'Polygon',
-      source: vectorSource, 
-    }),
-    bar:  new Bar({
-      controls:[
-        new TextButton({
-         title: 'rückgängig',
-         html: 'rückgängig',
-         handleClick: function(){
-          controlFl.getInteraction().removeLastPoint();
-         }
-        }),
-        new TextButton({
-          title: 'Beenden',
-          html: 'Beenden',
-          handleClick: function(){
-           controlFl.getInteraction().finishDrawing();
-          }
-        })
-      ]
-
-    })
-  });
-  myMainBar.addControl(controlFl);
-  
-  var controlSelect = new Toggle({
-    title: 'Element auswählen',
-    html: '<i class="fa fa-hand-pointer-o"></i>',
-    interaction: new Select(), 
-    //active: false,
-    onToggle: function(active) 
-      {
-        if (active) {
-          console.log("Element auswählen ist aktiviert");
-          map.removeInteraction(controlModification);
-        } else {
-          console.log("Element auswählen ist deaktiviert");
-          map.addInteraction(controlModification);
-        }
-      },
-    bar: new Bar({
-      controls: [
-        new TextButton({
-        title: 'löschen',
-        html: 'löschen',
-        handleClick: function()
-          {
-            var features = controlSelect.getInteraction().getFeatures(); 
-            if(features.getLength())
-            {
-              for(var i=0,f;f=features.item(i);i++)
-                {vector.getSource().removeFeature(f); }
-                controlSelect.getInteraction().getFeatures().clear();
-            }
-          }
-        })
-      ]  
-    }),
-  })
-  
-  myMainBar.addControl(controlSelect);
-};
 
 //---------------------------------------------Layergruppen
 const BwGroupP = new LayerGroup({
@@ -331,23 +192,111 @@ const BwGroupP = new LayerGroup({
   layers: [ exp_bw_son_pun_layer, exp_bw_ein_layer, exp_bw_bru_andere_layer, exp_bw_bru_nlwkn_layer, exp_bw_que_layer, exp_bw_due_layer, exp_bw_weh_layer, exp_bw_sle_layer]
 });
 
+
+// New vector layer
+var vectorP = new VectorLayer({
+  name: 'vectorP',
+  source: new VectorSource()
+});
+
+map.addLayer(vectorP);
 map.addLayer(osmTileCr);
 map.addLayer(gew_layer_layer);
 map.addLayer(BwGroupP);
-CreateMyControlBar();
 
-    // Add control
-  var geoloc = new GeolocationButton({
-    title: 'Where am I?',
-    delay: 2000 // 2s
-  });
-    map.addControl(geoloc);
-    
-    // Show position
-    var here = new Popup({ positioning: 'bottom-center' });
-    map.addOverlay(here);
-    geoloc.on('position', function(e) {
-      if (e.coordinate) here.show(e.coordinate, "You are<br/>here!");
-      else here.hide();
-    });
 
+ // Add control
+ var geoloc = new GeolocationButton({
+  title: 'Where am I?',
+  delay: 2000 // 2s
+});
+map.addControl(geoloc);
+
+//  Vector layer
+var vector = new VectorLayer( { source: new VectorSource() })
+
+map.addLayer(vector);
+
+var note = new Notification();
+
+map.addControl(note)
+
+// Add the editbar
+var select = new Select({ title: 'Sélection'});
+select.set('title', 'Sélection');
+var edit = new EditBar({
+  edition: true,
+  // Translate interaction title / label 
+  interactions: { 
+    // Use our own interaction > set the title inside
+    Select: select,
+    // Define button title
+    DrawLine: 'Linie',
+    //DrawRegular: { title: 'Forme régullière', ptsLabel: 'pts', circleLabel: 'cercle' }
+  },
+  source: vector.getSource() 
+});
+map.addControl(edit);
+
+// Add a tooltip
+var tooltip = new Tooltip();
+map.addOverlay(tooltip);
+
+edit.getInteraction('Select').on('select', function(e){
+  if (this.getFeatures().getLength()) {
+    tooltip.setInfo('Drag points on features to edit...');
+  }
+  else tooltip.setInfo();
+});
+edit.getInteraction('Select').on('change:active', function(e){
+  tooltip.setInfo('');
+});
+edit.getInteraction('ModifySelect').on('modifystart', function(e){
+  if (e.features.length===1) tooltip.setFeature(e.features[0]);
+});
+edit.getInteraction('ModifySelect').on('modifyend', function(e){
+  tooltip.setFeature();
+});
+edit.getInteraction('DrawPoint').on('change:active', function(e){
+  tooltip.setInfo(e.oldValue ? '' : 'Click map to place a point...');
+});
+edit.getInteraction('DrawLine').on(['change:active','drawend'], function(e){
+  tooltip.setFeature();
+  tooltip.setInfo(e.oldValue ? '' : 'Click map to start drawing line...');
+});
+edit.getInteraction('DrawLine').on('drawstart', function(e){
+  tooltip.setFeature(e.feature);
+  tooltip.setInfo('Click to continue drawing line...');
+});
+edit.getInteraction('DrawPolygon').on('drawstart', function(e){
+  tooltip.setFeature(e.feature);
+  tooltip.setInfo('Click to continue drawing shape...');
+});
+edit.getInteraction('DrawPolygon').on(['change:active','drawend'], function(e){
+  tooltip.setFeature();
+  tooltip.setInfo(e.oldValue ? '' : 'Click map to start drawing shape...');
+});
+ edit.getInteraction('DrawHole').on('drawstart', function(e){
+  tooltip.setFeature(e.feature);
+  tooltip.setInfo('Click to continue drawing hole...');
+});
+edit.getInteraction('DrawHole').on(['change:active','drawend'], function(e){
+  tooltip.setFeature();
+  tooltip.setInfo(e.oldValue ? '' : 'Click polygon to start drawing hole...');
+});
+edit.getInteraction('DrawRegular').on('drawstart', function(e){
+  tooltip.setFeature(e.feature);
+  tooltip.setInfo('Move and click map to finish drawing...');
+});
+edit.getInteraction('DrawRegular').on(['change:active','drawend'], function(e){
+  tooltip.setFeature();
+  tooltip.setInfo(e.oldValue ? '' : 'Click map to start drawing shape...');
+});
+
+
+edit.on('info', function(e){
+  console.log(e)
+  note.show('<i class="fa fa-info-circle"></i> '+e.features.getLength()+' feature(s) selected');
+});
+ 
+  
