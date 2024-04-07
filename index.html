@@ -24,7 +24,7 @@
    <!-- jQuery -->
    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
    <!-- FontAwesome -->
-   <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
    <link rel="stylesheet" href="./style.css" type="text/css"> <!-- Referenz zur neuen CSS-Datei -->
    <link rel="stylesheet" href="./node_modules/ol-ext/control/LayerSwitcher.css">
    
@@ -36,12 +36,29 @@
   </script>
 </head>
   
-  <body>
-    <div id="map" class="map"></div>
-    <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script> 
-    <!-- <script src="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.js"></script> -->
-    <script type="module" src="main.js"></script>
+<body>
+  <div id="map" class="map"></div>
+  <div id="info-container">
+    <table id="info">
+      <tr>
+        <td>All features</td>
+        <td id="all"></td>
+      </tr>
+      <tr>
+        <td>Uesg</td>
+        <td id="NSG"></td>
+      </tr>
+      <tr>
+        <td>LSG</td>
+        <td id="LSG"></td>
+      </tr>
+    </table>
+  </div>
+  <!-- Weitere Inhalte hier -->
+  <!-- <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>  -->
+  <!-- <script src="./node_modules/ol-layerswitcher/dist/ol-layerswitcher.js"></script> -->
+  <script type="module" src="main.js"></script>
+</body>
 
-  </body>
 </html>
 

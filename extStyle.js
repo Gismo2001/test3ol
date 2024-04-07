@@ -115,6 +115,44 @@ function getStyleForArtUmn(feature) {
     });
 };
 
+function getStyleForArtGewInfo(feature) {
+    const uIdValue = parseInt(feature.get('U_NR')); // Wandelt die Zeichenkette in eine Zahl um
+    const uArt = feature.get('Kat');
+    let strokeColor;
+    let strokeWidth;
+    let lineDash;
+
+    if (!isNaN(uIdValue)) { // Überprüfen, ob die Umwandlung erfolgreich war
+        if (uIdValue % 2 === 0) { // Überprüfen, ob die Zahl gerade ist
+            strokeColor = 'green'; // Beispiel: grüne Farbe für gerade Zahlen
+        } else {
+            strokeColor = 'red'; // Beispiel: rote Farbe für ungerade Zahlen
+        }
+        strokeWidth = 5;
+        // Überprüfen, ob "Kat" gleich "E" ist
+        if (uArt === 'E') {
+            lineDash = [10, 15]; // Gestrichelte Linie für "E"
+        }
+    } else {
+        // Handle den Fall, wenn die Umwandlung fehlschlägt
+        // Zum Beispiel: standardmäßige Farben und Stil für den Fehlerfall
+        strokeColor = 'gray';
+        strokeWidth = 5;
+    }
+    
+    return new Style({
+        fill: new Fill({
+            color: strokeColor
+        }),
+        stroke: new Stroke({
+            color: strokeColor,
+            width: strokeWidth,
+            lineDash: lineDash // Verwendung der lineDash-Eigenschaft für gestrichelte Linie, falls definiert
+        })
+    });    
+};
+
+
 function getStyleForArtSonLin(feature) {   
     const artValue = feature.get('bauart');
     let strokeColor;
@@ -341,6 +379,7 @@ export {
     getStyleForArtEin,
     getStyleForArtSonPun,
     getStyleForArtUmn,
+    getStyleForArtGewInfo,
     km100scalStyle,
     km500scalStyle,
     combinedStyle,

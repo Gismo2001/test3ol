@@ -16,10 +16,6 @@ html, body {
     height: 100%;
 }
 
-/* Stile für Buttons innerhalb von OpenLayers */
-.ol-button i {
-    color: inherit;
-}
 .popup {
     position: absolute;
     background-color: rgba(252, 252, 252, 1);
@@ -35,7 +31,6 @@ html, body {
     user-select: text; /* Erlaubt Textauswahl im Popup-Inhalt */
 }
 
-
 .popup h1 {
     font-size: 12px;
     font-weight: bold;
@@ -43,6 +38,50 @@ html, body {
 
 .popup-content {
     max-height: 200px;
-   
+}
+.select {
+    left: 10px;
+    top: 120px;
+}
+
+.active {
+    /* Füge hier das Styling für den aktiven Zustand des Buttons hinzu */
+    background-color: #4CAF50; /* Beispielhafte Hintergrundfarbe */
+    color: white; /* Beispielhafte Textfarbe */
+}
+
+.ol-wmscapabilities ul {
+    padding: 0;
+}
+#info-container {
+    position: absolute; /* Absolute Positionierung für das Container-Div */
+    bottom: 10px; /* Abstand zum unteren Rand */
+    left: 10px; /* Abstand zum linken Rand */
+    z-index: 9999; /* Stellt sicher, dass das Container-Div über anderen Elementen liegt */
+    background-color: rgba(255, 255, 255, 0.8); /* Weiße Hintergrundfarbe mit 80% Deckkraft */
+    padding: 10px; /* Innenabstand */
+  }
+  
+  
+  #info {
+    width: 100%; /* Breite des Tabellencontainers */
+    border-collapse: collapse; /* Verhindert Lücken zwischen den Zellen */
+  }
+  
+  #info td {
+    border: 1px solid #ddd; /* Rahmen um Zellen */
+    padding: 8px; /* Innenabstand der Zellen */
+  }
+  
+  #info tr:nth-child(even) {
+    background-color: #f2f2f2; /* Hintergrundfarbe für gerade Zeilen */
+  }
+  
+  #info tr:hover {
+    background-color: #ddd; /* Hintergrundfarbe für hover-Effekt */
+  }
+  
+  #info td:first-child {
+    font-weight: bold; /* Fettdruck für erste Spalte */
   }
   
