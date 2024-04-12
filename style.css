@@ -40,8 +40,8 @@ html, body {
     max-height: 200px;
 }
 .select {
-    left: 10px;
-    top: 120px;
+    left: 8px;
+    top: 130px;
 }
 
 .active {
@@ -53,35 +53,59 @@ html, body {
 .ol-wmscapabilities ul {
     padding: 0;
 }
-#info-container {
+#info1-container {
     position: absolute; /* Absolute Positionierung für das Container-Div */
     bottom: 10px; /* Abstand zum unteren Rand */
     left: 10px; /* Abstand zum linken Rand */
-    z-index: 9999; /* Stellt sicher, dass das Container-Div über anderen Elementen liegt */
+    z-index: 9998; /* Stellt sicher, dass das Container-Div über anderen Elementen liegt */
     background-color: rgba(255, 255, 255, 0.8); /* Weiße Hintergrundfarbe mit 80% Deckkraft */
     padding: 10px; /* Innenabstand */
   }
   
   
-  #info {
+  #info1 {
     width: 100%; /* Breite des Tabellencontainers */
     border-collapse: collapse; /* Verhindert Lücken zwischen den Zellen */
   }
   
-  #info td {
+  #info1 td {
     border: 1px solid #ddd; /* Rahmen um Zellen */
     padding: 8px; /* Innenabstand der Zellen */
   }
   
-  #info tr:nth-child(even) {
+  #info1 tr:nth-child(even) {
     background-color: #f2f2f2; /* Hintergrundfarbe für gerade Zeilen */
   }
   
-  #info tr:hover {
+  #info1 tr:hover {
     background-color: #ddd; /* Hintergrundfarbe für hover-Effekt */
   }
   
-  #info td:first-child {
+  #info1 td:first-child {
     font-weight: bold; /* Fettdruck für erste Spalte */
   }
   
+  
+/* Stil für den Container der Infodiv */
+.info-container {
+    border: 1px solid black;
+    background: rgb(255, 255, 255);
+    opacity: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    position: absolute;
+    bottom: 150px;
+    width: 85%;
+    left: 5px;
+    font-size: 18px;
+    z-index: 1005;
+  }
+  
+  /* Stil für das Schließen-Symbol */
+  .close-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    font-size: 20px;
+  }

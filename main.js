@@ -74,7 +74,9 @@ const map = new Map({
 
 var layerSwitcher = new LayerSwitcher({
   activationMode: 'click', 
+  reverse: true, 
   trash: true, 
+  tipLabel: 'Legende', 
 });
 map.addControl(layerSwitcher);
 //Start Layer--------------------------------------------------
@@ -193,7 +195,7 @@ const wmsUesgLayer = new TileLayer({
       'TILED': true,
     },
   }),
-  visible: false,
+  visible: true,
   opacity: .5,
 });
 const wmsWrrlFgLayer = new TileLayer({
@@ -208,7 +210,7 @@ const wmsWrrlFgLayer = new TileLayer({
       'TILED': true,
     },
   }),
-  visible: true,
+  visible: false,
   opacity: 1,
 });
 const wmsGewWmsFgLayer = new TileLayer({
@@ -247,7 +249,7 @@ const wmsLayerGroup = new LayerGroup({
   name: "WMS-Lay",
   fold: true,
   fold: 'close',
-  visible: false,
+  visible: true,
   layers: [ wmsLsgLayer, wmsNsgLayer, wmsUesgLayer, wmsWrrlFgLayer, wmsGewWmsFgLayer ]
 });
 
@@ -256,49 +258,41 @@ map.addLayer(osmTileCr);
 map.addLayer(wmsLayerGroup);
 map.addLayer(BwGroupL);
 map.addLayer(BwGroupP);
-
 //Ende Layer hinzufügen---------------------------------------
 
-
-
-
 var toggleButtonU = new Toggle({
-  html: '<i class="icon fa-fw fa fa-arrow-circle-down" aria-hidden="true"></i>', // CSS-Klasse "icon" hinzugefügt
+  html: '<i class="icon fa-fw fa fa-arrow-circle-down" aria-hidden="true"></i>',
   className: "select",
-  title: "Select Info'",
+  title: "Select Info",
+  active: true, // Button wird beim Start als aktiv gesetzt
   interaction: selectInteraction,
-  
   onToggle: function(active) {
-      alert("Select is " + (active ? "activated" : "deactivated"));
-      selectInteraction.setActive(active);
-      if (!active) selectInteraction.getFeatures().clear();
-      
-      if (active) {
-          map.addOverlay(popup);
-      } else {
-          map.removeOverlay(popup);
-      }
+    alert("Select is " + (active ? "activated" : "deactivated"));
+    selectInteraction.setActive(active);
 
-      // Klasse 'active' je nach Zustand des Buttons hinzufügen oder entfernen
-      if (active) {
-          toggleButtonU.element.classList.add('active');
-          toggleButtonU.element.querySelector('.icon').classList.add('active'); // Klasse 'active' zum Symbol hinzufügen
-      } else {
-          toggleButtonU.element.classList.remove('active');
-          toggleButtonU.element.querySelector('.icon').classList.remove('active'); // Klasse 'active' vom Symbol entfernen
-      }
+    // Auswahl löschen, wenn deaktiviert
+    if (!active) selectInteraction.getFeatures().clear();
 
-      // Hier kannst du die Aktionen für Ein- und Ausschalten der Interaktion integrieren
-      if (active) {
-          map.un('singleclick', singleClickHandler);
-      } else {
-          map.on('singleclick', singleClickHandler);
-      }
+    // FeaturPopup hinzufügen oder entfernen
+    if (active) map.addOverlay(popup);
+    else map.removeOverlay(popup);
+
+    // Klasse 'active' je nach Zustand des Buttons setzen
+    toggleButtonU.element.classList.toggle('active', active);
+    toggleButtonU.element.querySelector('.icon').classList.toggle('active', active);
+
+    // Ein- und Ausschalten der Interaktion
+    
+    if (active) map.un('singleclick', singleClickHandler);
+    else map.on('singleclick', singleClickHandler);
   }
 });
+// Klasse 'active' zum Button hinzufügen, um sicherzustellen, dass er beim Start als aktiv dargestellt wird
+toggleButtonU.element.classList.add('active');
+toggleButtonU.element.querySelector('.icon').classList.add('active');
 map.addControl(toggleButtonU);
 
-
+//Vektorlayer für Featureauswahl
 var vector = new VectorLayer({source: new VectorSource()});
 map.addLayer(vector);
 
@@ -308,15 +302,15 @@ var selectInteraction = new Select({
 });
 
 var selectFeat = new Select({
-  hitTolerance: 5,
+  hitTolerance: 3,
   multi: true,
   condition: singleClick,
 });
 let layer_selected;
+
 selectFeat.on('select', function(e) {
     let featureSelected = e.selected[0]; // erster selektiert Layer, für alle Layer: e.selected.forEach)
     layer_selected = selectFeat.getLayer(featureSelected); 
-    console.log(layer_selected); 
 });
 map.addInteraction(selectFeat);
 
@@ -334,10 +328,6 @@ var popup = new PopupFeature({
     title: 
       function(feature) {
         let layname = layer_selected.get('name'); // Wert des Attributs "bw_id"
-        console.log(layname);
-        //console.log(bwId)
-        //let layName= selectFeat.get('name')
-      
         if (layname == 'sle' || layname == 'weh' || layname == 'que' ) {
           var content = '<div class="popup-content">';
           var beschreibLangValue = feature.get('beschreib_lang');
@@ -380,7 +370,6 @@ var popup = new PopupFeature({
           return content;
           } else if(layname === 'gew_info') {  
             content = "";
-            console.log('angekommen info');      
             content =
             '<div style="max-height: 300px; overflow-y: auto;">' +
             '<p>Name: ' + feature.get('IDUabschn') + '<br>' +
@@ -401,45 +390,89 @@ var popup = new PopupFeature({
           'GEW': { title: 'Gewässer' },
         }
     },
-  }
-);
+});
 map.addOverlay(popup);
 
 
-var popupWms = new Overlay({
-  id: 'popWms',
-  autoPan: true,
-  autoPanAnimation: {
-    duration: 250
-  }
-});
-map.addOverlay(popupWms);
+// Funktion zum Durchsuchen aller Layer in einem LayerGroup-Objekt
+function getLayersInGroup(layerGroup) {
+  const layers = [];
+  layerGroup.getLayers().forEach(layer => {
+      if (layer instanceof LayerGroup) {
+          // Wenn der Layer ein LayerGroup ist, rufe die Funktion rekursiv auf
+          layers.push(...getLayersInGroup(layer));
+      } else {
+          // Füge den Layer zur Liste hinzu, wenn er ein TileLayer ist
+          layers.push(layer);
+      }
+  });
+  return layers;
+}
 
-// Funktion für den singleclick-Handler
 function singleClickHandler(evt) {
-  const infoElement = document.getElementById('info');
-  // Clear previous content
-  //infoElement.innerHTML = '';
-
+//map.on('singleclick', function (evt) {
+  const visibleLayers = [];
+  map.getLayers().forEach(layer => {
+      if (layer.getVisible()) {
+          if (layer instanceof LayerGroup) {
+              visibleLayers.push(...getLayersInGroup(layer));
+          } else {
+              visibleLayers.push(layer);
+          }
+      }
+  });
   const viewResolution = map.getView().getResolution();
-  const viewProjection = map.getView().getProjection().getCode();
+  const viewProjection = map.getView().getProjection();
 
-  const url = wmsUesgLayer.getSource().getFeatureInfoUrl(evt.coordinate, viewResolution, viewProjection, {'INFO_FORMAT': 'text/html'});
-  if (url) {
-    fetch(url)
-      .then((response) => response.text())
-      .then((html) => {
-        if (html.trim() !== '') {
-          // You need to define or replace these functions accordingly
-          // removeExistingInfoDiv();
-          const infoDiv = createInfoDiv(html); // Assuming 'name' is not defined in your code
-          document.body.appendChild(infoDiv);
+  visibleLayers.forEach(layer => {
+    const layerName = layer.get('name');
+    if (layer.getVisible()) {
+        const source = layer.getSource();
+        if (source instanceof TileWMS && typeof source.getFeatureInfoUrl === 'function') {
+            const url = source.getFeatureInfoUrl(evt.coordinate, viewResolution, viewProjection, {'INFO_FORMAT': 'text/html'});
+            if (url) {
+                fetch(url)
+                    .then((response) => response.text())
+                    .then((html) => {
+                        if (html.trim() !== '') {
+                            removeExistingInfoDiv();
+                            var bodyIsEmpty = /<body[^>]*>\s*<\/body>/i.test(html);
+                            if (bodyIsEmpty === false) {
+                                const infoDiv = createInfoDiv(layerName, html);
+                                console.log(html);
+                                document.body.appendChild(infoDiv);
+                            } else {
+                                console.log(html);
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        alert('Kein Feature gefunden');
+                    });
+            }
         }
-      })
-      .catch((error) => {
-        alert('Wms-Layer, kein Feature  gefunden');
-      });
-  }
+    }
+});
+};
+
+function createInfoDiv(name, html) {
+  const infoDiv = document.createElement('div');
+  infoDiv.id = 'info';
+  infoDiv.classList.add('info-container');
+  infoDiv.innerHTML = `<strong>${name} Layer</strong><br>${html}`;
+  const closeIcon = document.createElement('span');
+  closeIcon.innerHTML = '&times;';
+  closeIcon.classList.add('close-icon');
+  closeIcon.addEventListener('click', function () {
+    infoDiv.style.display = 'none';
+  });
+  infoDiv.appendChild(closeIcon);
+  return infoDiv;
+}
+
+function removeExistingInfoDiv() {
+  const existingInfoDiv = document.getElementById('info');
+  if (existingInfoDiv) { existingInfoDiv.remove(); }
 }
 
 var cap = new WMSCapabilities({
@@ -452,11 +485,14 @@ var cap = new WMSCapabilities({
   searchLabel: 'Suche',
   optional: 'token',
   services: {
-      'OSM': 'https://wms.openstreetmap.fr/wms',
-      'Hydro, Umweltkarten NI ': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/Hydro_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
-      'WRRL, Umweltkarten NI ': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/WRRL_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
-  },
-  trace: true
+        
+    'Hydro, Umweltkarten NI ': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/Hydro_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
+    'WRRL, Umweltkarten NI ': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/WRRL_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
+    'Natur, Umweltkarten NI': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/Natur_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
+    'HW-Schutz, Umwelkarten NI':'https://www.umweltkarten-niedersachsen.de/arcgis/services/HWSchutz_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
+   
+},
+  //trace: true
 });
 map.addControl(cap);
 cap.on('load', function (e) {
