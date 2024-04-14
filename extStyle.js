@@ -1,7 +1,5 @@
 import {Circle as CircleStyle, Fill, RegularShape, Icon, Stroke, Style, Text} from 'ol/style.js';
 import { Point} from 'ol/geom.js';
-
-
 //extfunc.js
 const sleStyle = new Style({
     image: new Icon({
@@ -21,7 +19,7 @@ const bru_nlwknStyle = new Style({
     scale: .9 
     })
 });
-const bru_andereStyle = new Style({
+const bruAndereStyle = new Style({
     image: new Icon({
     src: './data/bru_andere.svg',
     scale: .9 
@@ -114,7 +112,6 @@ function getStyleForArtUmn(feature) {
         })
     });
 };
-
 function getStyleForArtGewInfo(feature) {
     const uIdValue = parseInt(feature.get('U_NR')); // Wandelt die Zeichenkette in eine Zahl um
     const uArt = feature.get('Kat');
@@ -158,20 +155,32 @@ function getStyleForArtSonLin(feature) {
     let strokeColor;
     let strokeWidth;
     let lineDash;
-    
-    switch (artValue) {
-        case 'Anlegehilfe':
-            strokeColor = 'blue';
-            strokeWidth = 3;
-            break;
-        case 'Sohlgleite':
-            strokeColor = 'red';
-            strokeWidth = 10;
-            lineDash = [10, 5]; // Array mit Längen der Striche und Lücken
-            break;
-        default:
-            strokeColor = 'black';
-            lineDash = undefined; // Keine gestrichelte Linie für den Standardfall
+
+    if (artValue === 'Anlegehilfe') {
+        strokeColor = 'blue';
+        strokeWidth = 5;
+    } else if (/sohlgl|umgehungs/i.test(artValue)) {
+        strokeColor = 'red';
+        strokeWidth = 5;
+        lineDash = [10, 15];
+    } else if (/fuß|rad/i.test(artValue)) {
+        strokeColor = 'olive';
+        strokeWidth = 5;
+        lineDash = [20, 10];
+    } else if (/bio/i.test(artValue)) {
+        strokeColor = 'green';
+        strokeWidth = 5;
+        lineDash = [17.5, 10];
+
+    } else if (/strasse|Straße/i.test(artValue)) {
+        strokeColor = 'Black';
+        strokeWidth = 5;
+        lineDash = [12.5, 10];
+
+    } else {
+        strokeColor = 'blue';
+        strokeWidth = 5;
+        lineDash = undefined;
     }
     
     return new Style({
@@ -184,7 +193,8 @@ function getStyleForArtSonLin(feature) {
             lineDash: lineDash // Verwendung der lineDash-Eigenschaft für gestrichelte Linie
         })
     });
-}
+};
+
 function getStyleForArtEin(feature) {   
     const artValue = feature.get('Ein_ord');
     let iconSrc;
@@ -214,7 +224,7 @@ function getStyleForArtEin(feature) {
             scale: .9 
         })
     });
-}
+};
 
 function getStyleForArtSonPun(feature) {   
     const artValue = feature.get('bauart');
@@ -367,9 +377,9 @@ const combinedStyle = [arrowStyle, endpointStyle];
 
 export { 
     bru_nlwknStyle,
-    bru_andereStyle, 
     sleStyle,
     wehStyle, 
+    bruAndereStyle, 
     dueStyle,
     queStyle,
     getStyleForArtSonLin, 

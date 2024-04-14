@@ -38,15 +38,24 @@ import LayerGroup from 'ol/layer/Group';
 import { Circle } from 'ol/geom';
 import WMSCapabilities from 'ol-ext/control/WMSCapabilities';
 import { 
-  sleStyle,
-  getStyleForArtSonPun,
-  getStyleForArtEin,
-  queStyle,
-  dueStyle,
-  wehStyle,
   bru_nlwknStyle,
-  bru_andereStyle,
-  getStyleForArtGewInfo,
+    sleStyle,
+    wehStyle, 
+    bruAndereStyle, 
+    dueStyle,
+    queStyle,
+    getStyleForArtSonLin, 
+    km10scalStyle,
+    gehoelz_vecStyle,
+    getStyleForArtFSK,
+    getStyleForArtEin,
+    getStyleForArtSonPun,
+    getStyleForArtUmn,
+    getStyleForArtGewInfo,
+    km100scalStyle,
+    km500scalStyle,
+    combinedStyle,
+    
   
 } from './extStyle';
 
@@ -84,15 +93,47 @@ var layerSwitcher = new LayerSwitcher({
 map.addControl(layerSwitcher);
 //Start Layer--------------------------------------------------
 
+
+const gehoelz_vecLayer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gehoelz_vec.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Gehölz(Plan)', // Titel für den Layer-Switcher
+  name: 'gehoelz_vec',
+  style: gehoelz_vecStyle,
+  visible: false
+});
+const exp_allgm_fsk_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_allgm_fsk.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'fsk',
+  name: 'fsk', 
+  style: getStyleForArtFSK,
+  visible: false,
+  minResolution: 0,
+  maxResolution: 4
+})
+const exp_bw_son_lin_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_bw_son_lin.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }), 
+  title: 'Sonstig, Linien', 
+  name: 'son_lin',
+  style: getStyleForArtSonLin,
+  visible: false
+});
+const exp_gew_umn_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_gew_umn.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'U-Maßnahmen', 
+  name: 'gew_umn',
+  style: getStyleForArtUmn,
+  visible: false
+});
 const exp_gew_info_layer = new VectorLayer({
   source: new VectorSource({
   format: new GeoJSON(),
   url: function (extent) {return './myLayers/exp_gew_info.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
   title: 'Gew, Info', 
   name: 'gew_info',
-  style: getStyleForArtGewInfo,
+  style: combinedStyle,
   visible: false
 });
+
 const gew_layer_layer = new VectorLayer({
   source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gew.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
   title: 'gew', // Titel für den Layer-Switcher
@@ -103,6 +144,25 @@ const gew_layer_layer = new VectorLayer({
   })
 })
 
+
+const exp_bw_son_pun_layer = new VectorLayer({
+  source: new VectorSource({
+  format: new GeoJSON(),
+  url: function (extent) {return './myLayers/exp_bw_son_pun.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Sonstige, Punkte', 
+  name: 'son_pun', 
+  style: getStyleForArtSonPun,
+  visible: false
+});
+const exp_bw_ein_layer = new VectorLayer({
+  source: new VectorSource({
+  format: new GeoJSON(),
+  url: function (extent) {return './myLayers/exp_bw_ein.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Einläufe', 
+  name: 'ein', 
+  style: getStyleForArtEin,
+  visible: false
+});
 const exp_bw_que_layer = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
@@ -142,6 +202,20 @@ const exp_bw_weh_layer = new VectorLayer({
   style: wehStyle,
   visible: false
 });
+const exp_bw_bru_nlwkn_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_bw_bru_nlwkn.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Brücke (NLWKN)', 
+  name: 'bru_nlwkn', // Titel für den Layer-Switcher
+  style: bru_nlwknStyle,
+  visible: false
+});
+const exp_bw_bru_andere_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/exp_bw_bru_andere.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'Brücke (andere)', 
+  name: 'bru_andere', 
+  style: bruAndereStyle,
+  visible: false
+});
 const exp_bw_sle_layer = new VectorLayer({
   source: new VectorSource({
     format: new GeoJSON(),
@@ -153,8 +227,39 @@ const exp_bw_sle_layer = new VectorLayer({
   title: 'Schleuse', // Titel für den Layer-Switcher
   name: 'sle', // Titel für den Layer-Switcher
   style: sleStyle,
-  visible: true
+  visible: true,
+  trash: false,
 });
+
+
+const km10scal_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/km_10_scal.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'km10scal', // Titel für den Layer-Switcher
+  style: km10scalStyle,
+  visible: false,
+  minResolution: 0,
+  maxResolution: 1
+});
+const km100scal_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/km_100_scal.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'km100scal', // Titel für den Layer-Switcher
+  style: function(feature, resolution) {
+    return km100scalStyle(feature, feature.get('km'), resolution);
+  },
+  visible: true,
+  minResolution: 0,
+  maxResolution: 3 
+});
+const km500scal_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/km_500_scal.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'km500scal', // Titel für den Layer-Switcher
+  style: function(feature, resolution) {
+    return km500scalStyle(feature, feature.get('km'), resolution);
+  },
+  visible: true  
+});
+
+
 
 const wmsNsgLayer = new TileLayer({
   title: "NSG",
@@ -435,20 +540,21 @@ const osmTileCr = new TileLayer({
 });
 
 
+
+//---------------------------------------------Layergruppen
 const BwGroupP = new LayerGroup({
   title: "Bauw.(P)",
-  name: "Bauw.(P)",
+  name: "bauwP",
   fold: true,
-  fold: 'close',  
-  layers: [ exp_bw_que_layer, exp_bw_due_layer, exp_bw_weh_layer, exp_bw_sle_layer]
+  fold: 'close',
+  layers: [ exp_bw_son_pun_layer, exp_bw_ein_layer, exp_bw_bru_andere_layer, exp_bw_bru_nlwkn_layer, exp_bw_que_layer, exp_bw_due_layer, exp_bw_weh_layer, exp_bw_sle_layer],
 });
-
 const BwGroupL = new LayerGroup({
   title: "Bauw.(L)",
-  name: "Bauw.(L)",
+  name: "BauwL",
   fold: true,
   fold: 'close',  
-  layers: [ exp_gew_info_layer ]
+  layers: [ gehoelz_vecLayer, exp_gew_umn_layer, exp_bw_son_lin_layer, exp_gew_info_layer ]
 });
 
 const wmsLayerGroup = new LayerGroup({
@@ -467,6 +573,13 @@ const NOHAtlasGroup = new LayerGroup({
   layers: [ gnAtlas2023, gnAtlas2020, gnAtlas2017, gnAtlas2014, gnAtlas2012, gnAtlas2010, gnAtlas2009, gnAtlas2002, gnAtlas1970, gnAtlas1957, gnAtlas1937]
 });
 
+const kmGroup = new LayerGroup({
+  title: "Station",
+  name: "station",
+  fold: true,
+  fold: 'close',
+  layers: [km10scal_layer, km100scal_layer, km500scal_layer]
+});
 
 const BaseGroup = new LayerGroup({
   title: "Base",
@@ -530,23 +643,11 @@ var selectInteraction = new Select({
 
 var selectFeat = new Select({
   hitTolerance: 5,
-  multi: false,
+  multi: true,
   condition: singleClick,
 });
 
-
-selectFeat.on('select', function(e) {
-  let featureSelected = e.selected[0]; // erster selektiert Layer, für alle Layer: e.selected.forEach)
-  const layerName = selectFeat.getLayer(featureSelected).get('name');  
-  if (layerName !== 'gew') {  
-    layer_selected = selectFeat.getLayer(featureSelected);
-  } else {
-    selectFeat.getFeatures().clear(); // Hebt die Selektion auf
-  } 
-});
-
-let layer_selected;
-map.addInteraction(selectFeat);
+let layer_selected = null; // Setze layer_selected auf null, um sicherzustellen, dass es immer definiert ist
 
 var popup = new PopupFeature({
   popupClass: 'popup', // Verwenden Sie Ihre benutzerdefinierte Popup-Klasse hier
@@ -557,81 +658,105 @@ var popup = new PopupFeature({
   positioning: 'top-left',
   backgroundposition: 'center-center',
   onclose: function () {
-    selectFeat.getFeatures().clear();
+      selectFeat.getFeatures().clear();
   },
   template: {
-    title: 
-      function(feature) {
-        let layname = layer_selected.get('name'); // Wert des Attributs "bw_id"
-        if (layname == 'sle' || layname == 'weh' || layname == 'que' ) {
-          var content = '<div class="popup-content">';
-          var beschreibLangValue = feature.get('beschreib_lang');
-          var beschreibLangHtml = '';
-          if (beschreibLangValue && beschreibLangValue.trim() !== '') {
-            beschreibLangHtml = '<br>' + '<u>' + "Beschreib (lang): " + '</u>' + beschreibLangValue + '</p>';          
-          };
-          content= "";
-          var foto1Value = feature.get('foto1'); var foto1Html = '';
-          var foto2Value = feature.get('foto2'); var foto2Html = '';
-          var foto3Value = feature.get('foto3'); var foto3Html = '';
-          var foto4Value = feature.get('foto4'); var foto4Html = '';
-          if (foto1Value && foto1Value.trim() !== '') {
-            foto1Html = '<a href="' + foto1Value + '" onclick="window.open(\'' + foto1Value + '\', \'_blank\'); return false;">Foto 1</a>';
-          } else {
-           foto1Html =   " Foto 1 ";
+      title: function (feature) {
+          let layname = layer_selected ? layer_selected.get('name') : null;
+          //let layname = layer_selected.get('name'); // Wert des Attributs "bw_id"
+          if (!layname || (layname == 'sle' || layname == 'weh' || layname == 'que') && layname !== 'gew') {
+              var content = '<div class="popup-content">';
+              var beschreibLangValue = feature.get('beschreib_lang');
+              var beschreibLangHtml = '';
+              if (beschreibLangValue && beschreibLangValue.trim() !== '') {
+                  beschreibLangHtml = '<br>' + '<u>' + "Beschreib (lang): " + '</u>' + beschreibLangValue + '</p>';
+              };
+              content = "";
+              var foto1Value = feature.get('foto1');
+              var foto1Html = '';
+              var foto2Value = feature.get('foto2');
+              var foto2Html = '';
+              var foto3Value = feature.get('foto3');
+              var foto3Html = '';
+              var foto4Value = feature.get('foto4');
+              var foto4Html = '';
+              if (foto1Value && foto1Value.trim() !== '') {
+                  foto1Html = '<a href="' + foto1Value + '" onclick="window.open(\'' + foto1Value + '\', \'_blank\'); return false;">Foto 1</a>';
+              } else {
+                  foto1Html = " Foto 1 ";
+              }
+              if (foto2Value && foto2Value.trim() !== '') {
+                  foto2Html = '<a href="' + foto2Value + '" onclick="window.open(\'' + foto2Value + '\', \'_blank\'); return false;">Foto 2</a>';
+              } else {
+                  foto2Html = " Foto 2 ";
+              }
+              if (foto3Value && foto3Value.trim() !== '') {
+                  foto3Html = '<a href="' + foto3Value + '" onclick="window.open(\'' + foto3Value + '\', \'_blank\'); return false;">Foto 3</a>';
+              } else {
+                  foto3Html = " Foto 3 ";
+              }
+              if (foto4Value && foto4Value.trim() !== '') {
+                  foto4Html = '<a href="' + foto4Value + '" onclick="window.open(\'' + foto4Value + '\', \'_blank\'); return false;">Foto 4</a>';
+              } else {
+                  foto4Html = " Foto 4 ";
+              }
+              content =
+                  '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') +
+                  '<br>' + feature.get('KTR') + ')' + '</p>' +
+                  '<p style="font-weight: normal";>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html +
+                  '<br>' + '<u>' + "Beschreibung (kurz): " + '</u>' + feature.get('beschreib') +
+                  '<br>' + beschreibLangHtml + '</p>' +
+                  '</div>';
+              return content;
+          } else if (!layname || layname === 'gew_info') {
+              var content = '<div class="popup-content">';
+              console.log('angekommen');
+              content = "";
+              content =
+                  '<div style="max-height: 300px; overflow-y: auto;">' +
+                  '<p>Name: ' + feature.get('IDUabschn') + '<br>' +
+                  '<p><a href="' + feature.get('link1') + '" onclick="window.open(\'' + feature.get('link1') + '\', \'_blank\'); return false;">Link 1</a> ' +
+                  '<a href="' + feature.get('link2') + '" onclick="window.open(\'' + feature.get('link2') + '\', \'_blank\'); return false;">Link 2</a> ' +
+                  '<a href="' + feature.get('foto1') + '" onclick="window.open(\'' + feature.get('foto1') + '\', \'_blank\'); return false;">Foto 1</a> ' +
+                  '<a href="' + feature.get('foto2') + '" onclick="window.open(\'' + feature.get('foto2') + '\', \'_blank\'); return false;">Foto 2</a><br>' +
+                  '<p><a href="' + feature.get('BSB') + '" onclick="window.open(\'' + feature.get('BSB') + '\', \'_blank\'); return false;">BSB  </a>' +
+                  '<a href="' + feature.get('MNB') + '" onclick="window.open(\'' + feature.get('MNB') + '\', \'_blank\'); return false;">MNB</a><br> ' +
+                  'Kat: ' + feature.get('Kat') + '</a>' +
+                  ', KTR: ' + feature.get('REFID_KTR') + '</a>' +
+                  '<br>' + "von " + feature.get('Bez_Anfang') + " bis " + feature.get('Bez_Ende') + '</p>' +
+                  '</div>';
+              return content;
+          } else if (!layname || layname === 'gew') {
+              content = "";
+              selectFeat.getFeatures().clear();
+              return content;
           }
-          if (foto2Value && foto2Value.trim() !== '') {
-            foto2Html = '<a href="' + foto2Value + '" onclick="window.open(\'' + foto2Value + '\', \'_blank\'); return false;">Foto 2</a>';
-          } else {
-            foto2Html = " Foto 2 ";
-          }
-          if (foto3Value && foto3Value.trim() !== '') {
-            foto3Html = '<a href="' + foto3Value + '" onclick="window.open(\'' + foto3Value + '\', \'_blank\'); return false;">Foto 3</a>';
-          } else {
-           foto3Html = " Foto 3 ";
-          }
-          if (foto4Value && foto4Value.trim() !== '') {
-            foto4Html = '<a href="' + foto4Value + '" onclick="window.open(\'' + foto4Value + '\', \'_blank\'); return false;">Foto 4</a>';
-          } else {
-          foto4Html = " Foto 4 ";
-          }
-          content = 
-            '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') +  
-            '<br>' +  feature.get('KTR') +')' +  '</p>' +
-            '<p style="font-weight: normal";>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html + 
-            '<br>' + '<u>' + "Beschreibung (kurz): " + '</u>' + feature.get('beschreib') + 
-            '<br>' + beschreibLangHtml + '</p>' +
-            '</div>';
-          return content;
-          } else if(layname === 'gew_info') {  
-            var content = '<div class="popup-content">';
-            console.log('angekommen');
-            content = "";
-            content = 
-            //content.innerHTML =
-      '<div style="max-height: 300px; overflow-y: auto;">' +
-      '<p>Name: ' + feature.get('IDUabschn') + '<br>' +
-      '<p><a href="' + feature.get('link1') + '" onclick="window.open(\'' + feature.get('link1') + '\', \'_blank\'); return false;">Link 1</a> ' +
-      '<a href="' + feature.get('link2') + '" onclick="window.open(\'' + feature.get('link2') + '\', \'_blank\'); return false;">Link 2</a> ' +
-      '<a href="' + feature.get('foto1') + '" onclick="window.open(\'' + feature.get('foto1') + '\', \'_blank\'); return false;">Foto 1</a> ' +
-      '<a href="' + feature.get('foto2') + '" onclick="window.open(\'' + feature.get('foto2') + '\', \'_blank\'); return false;">Foto 2</a><br>' +
-      '<p><a href="' + feature.get('BSB') + '" onclick="window.open(\'' + feature.get('BSB') + '\', \'_blank\'); return false;">BSB  </a>' +
-      '<a href="' + feature.get('MNB') + '" onclick="window.open(\'' + feature.get('MNB') + '\', \'_blank\'); return false;">MNB</a><br> ' +
-      'Kat: ' + feature.get('Kat') + '</a>' +
-      ', KTR: ' + feature.get('REFID_KTR') + '</a>' +
-      '<br>' + "von " + feature.get('Bez_Anfang') + " bis " + feature.get('Bez_Ende')  + '</p>' +
-      '</div>';
-            return content;
-          }
-        },  
-        attributes: 
-        {
+      },
+      attributes:
+      {
           'bw_id': { title: 'ID' },
-        }
-    },
+      }
+  },
 });
-map.addOverlay(popup);
 
+
+selectFeat.on('select', function (e) {
+  e.selected.forEach(function (featureSelected) {
+      const layerName = selectFeat.getLayer(featureSelected).get('name');
+
+      if (layerName !== 'gew') {
+          // Setze layer_selected nur, wenn das layerName nicht 'gew' ist
+          layer_selected = selectFeat.getLayer(featureSelected);
+          console.log(layer_selected);
+      } else {
+          selectFeat.getFeatures().clear(); // Hebt die Selektion auf
+          layer_selected = null; // Setze layer_selected auf null, da die Selektion aufgehoben wurde
+      }
+  });
+});
+
+map.addInteraction(selectFeat);
+map.addOverlay(popup);
 
 // -------------------------------------------------------WMS
 function getLayersInGroup(layerGroup) {
