@@ -144,7 +144,6 @@ const gew_layer_layer = new VectorLayer({
   })
 })
 
-
 const exp_bw_son_pun_layer = new VectorLayer({
   source: new VectorSource({
   format: new GeoJSON(),
@@ -273,7 +272,7 @@ const wmsNsgLayer = new TileLayer({
       'TILED': true,
     },
   }),
-  visible: true,
+  visible: false,
   opacity: .5,
 });
 const wmsLsgLayer = new TileLayer({
@@ -594,6 +593,7 @@ map.addLayer(BaseGroup);
 map.addLayer(NOHAtlasGroup);
 map.addLayer(gew_layer_layer);
 map.addLayer(wmsLayerGroup);
+map.addLayer(kmGroup);
 map.addLayer(BwGroupL);
 map.addLayer(BwGroupP);
 
