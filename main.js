@@ -311,7 +311,7 @@ var selectInteraction = new Select({
 });
 
 var selectFeat = new Select({
-  hitTolerance: 3,
+  hitTolerance: 10,
   multi: true,
   condition: singleClick,
 });
