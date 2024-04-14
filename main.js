@@ -98,7 +98,15 @@ const exp_gew_info_layer = new VectorLayer({
   style: getStyleForArtGewInfo,
   visible: false
 });
-
+const gew_layer_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gew.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
+  title: 'gew', // Titel für den Layer-Switcher
+  name: 'gew',
+  style: new Style({
+    fill: new Fill({ color: 'rgba(0,28, 240, 0.4)' }),
+    stroke: new Stroke({ color: 'blue', width: 2 })
+  })
+})
 
 const exp_bw_que_layer = new VectorLayer({
   source: new VectorSource({
@@ -165,7 +173,7 @@ const wmsNsgLayer = new TileLayer({
       'TILED': true,
     },
   }),
-  visible: false,
+  visible: true,
   opacity: .5,
 });
 const wmsLsgLayer = new TileLayer({
@@ -195,7 +203,7 @@ const wmsUesgLayer = new TileLayer({
       'TILED': true,
     },
   }),
-  visible: true,
+  visible: false,
   opacity: .5,
 });
 const wmsWrrlFgLayer = new TileLayer({
@@ -258,6 +266,7 @@ map.addLayer(osmTileCr);
 map.addLayer(wmsLayerGroup);
 map.addLayer(BwGroupL);
 map.addLayer(BwGroupP);
+map.addLayer(gew_layer_layer);
 //Ende Layer hinzufügen---------------------------------------
 
 var toggleButtonU = new Toggle({
@@ -316,11 +325,12 @@ map.addInteraction(selectFeat);
 
 var popup = new PopupFeature({
   popupClass: 'popup', // Verwenden Sie Ihre benutzerdefinierte Popup-Klasse hier
-  
   select: selectFeat,
   canFix: true,
   closeBox: true,
-  //positioning: 'bottom-center',
+  //autoPan: true,
+  positioning: 'top-left',
+  backgroundposition: 'center-center',
   onclose: function () {
     selectFeat.getFeatures().clear();
   },
@@ -362,7 +372,7 @@ var popup = new PopupFeature({
           }
           content = 
             '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') +  
-            '<br>' + " (" + feature.get('bw_id') +  ', ' + feature.get('KTR') +')' +  '</p>' +
+            '<br>' +  feature.get('KTR') +')' +  '</p>' +
             '<p style="font-weight: normal";>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html + 
             '<br>' + '<u>' + "Beschreibung (kurz): " + '</u>' + feature.get('beschreib') + 
             '<br>' + beschreibLangHtml + '</p>' +
@@ -387,14 +397,14 @@ var popup = new PopupFeature({
         },  
         attributes: 
         {
-          'GEW': { title: 'Gewässer' },
+          'bw_id': { title: 'ID' },
         }
     },
 });
 map.addOverlay(popup);
 
 
-// Funktion zum Durchsuchen aller Layer in einem LayerGroup-Objekt
+// -------------------------------------------------------WMS
 function getLayersInGroup(layerGroup) {
   const layers = [];
   layerGroup.getLayers().forEach(layer => {
@@ -418,6 +428,7 @@ function singleClickHandler(evt) {
               visibleLayers.push(...getLayersInGroup(layer));
           } else {
               visibleLayers.push(layer);
+              
           }
       }
   });
@@ -426,6 +437,7 @@ function singleClickHandler(evt) {
 
   visibleLayers.forEach(layer => {
     const layerName = layer.get('name');
+    console.log(layerName);
     if (layer.getVisible()) {
         const source = layer.getSource();
         if (source instanceof TileWMS && typeof source.getFeatureInfoUrl === 'function') {
@@ -435,32 +447,37 @@ function singleClickHandler(evt) {
                     .then((response) => response.text())
                     .then((html) => {
                         if (html.trim() !== '') {
-                            removeExistingInfoDiv();
+                            //removeExistingInfoDiv();
                             var bodyIsEmpty = /<body[^>]*>\s*<\/body>/i.test(html);
                             if (bodyIsEmpty === false) {
-                                const infoDiv = createInfoDiv(layerName, html);
-                                console.log(html);
-                                document.body.appendChild(infoDiv);
+                              var modifiedHTML = checkForLinkInTH(html);
+                              
+                              const infoDiv = createInfoDiv(layerName, modifiedHTML);
+                              document.body.appendChild(infoDiv);
                             } else {
-                                console.log(html);
+                                console.log('nichts verwertbares gefunden');
+                                //alert('nichts verwertbares gefunden');
                             }
                         }
                     })
                     .catch((error) => {
-                        alert('Kein Feature gefunden');
+                      console.error('Fehler beim Abrufen der Daten:', error);
+                      alert('Es ist ein Fehler aufgetreten');
                     });
             }
         }
+      }   
     }
-});
+  );
 };
 
 function createInfoDiv(name, html) {
-  const infoDiv = document.createElement('div');
+  const infoDiv = document.createElement('p');
   infoDiv.id = 'info';
   infoDiv.classList.add('info-container');
-  infoDiv.innerHTML = `<strong>${name} Layer</strong><br>${html}`;
-  const closeIcon = document.createElement('span');
+  //infoDiv.innerHTML = `<strong>${name} Layer</strong><br>${html}`;
+  infoDiv.innerHTML = `${html}`;
+  const closeIcon = document.createElement('p');
   closeIcon.innerHTML = '&times;';
   closeIcon.classList.add('close-icon');
   closeIcon.addEventListener('click', function () {
@@ -490,12 +507,14 @@ var cap = new WMSCapabilities({
     'WRRL, Umweltkarten NI ': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/WRRL_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
     'Natur, Umweltkarten NI': 'https://www.umweltkarten-niedersachsen.de/arcgis/services/Natur_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
     'HW-Schutz, Umwelkarten NI':'https://www.umweltkarten-niedersachsen.de/arcgis/services/HWSchutz_wms/MapServer/WMSServer?VERSION=1.3.0.&SERVICE=WMS&REQUEST=GetCapabilities',
+    'schutzgebiete, NL': 'https://service.pdok.nl/provincies/aardkundige-waarden/wms/v1_0?request=GetCapabilities&service=WMS',
    
 },
-  //trace: true
+  trace: true
 });
 map.addControl(cap);
 cap.on('load', function (e) {
   map.addLayer(e.layer);
   e.layer.set('legend', e.options.data.legend);
 });
+

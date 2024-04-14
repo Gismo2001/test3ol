@@ -19,7 +19,8 @@ html, body {
 .popup {
     position: absolute;
     background-color: rgba(252, 252, 252, 1);
-    border: 1px solid #ccc;
+    
+    border: 1px solid #050505;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 5px;
     font-family: Arial, sans-serif;
@@ -31,6 +32,7 @@ html, body {
     user-select: text; /* Erlaubt Textauswahl im Popup-Inhalt */
 }
 
+
 .popup h1 {
     font-size: 12px;
     font-weight: bold;
@@ -39,6 +41,8 @@ html, body {
 .popup-content {
     max-height: 200px;
 }
+
+
 .select {
     left: 8px;
     top: 130px;
@@ -53,38 +57,6 @@ html, body {
 .ol-wmscapabilities ul {
     padding: 0;
 }
-#info1-container {
-    position: absolute; /* Absolute Positionierung für das Container-Div */
-    bottom: 10px; /* Abstand zum unteren Rand */
-    left: 10px; /* Abstand zum linken Rand */
-    z-index: 9998; /* Stellt sicher, dass das Container-Div über anderen Elementen liegt */
-    background-color: rgba(255, 255, 255, 0.8); /* Weiße Hintergrundfarbe mit 80% Deckkraft */
-    padding: 10px; /* Innenabstand */
-  }
-  
-  
-  #info1 {
-    width: 100%; /* Breite des Tabellencontainers */
-    border-collapse: collapse; /* Verhindert Lücken zwischen den Zellen */
-  }
-  
-  #info1 td {
-    border: 1px solid #ddd; /* Rahmen um Zellen */
-    padding: 8px; /* Innenabstand der Zellen */
-  }
-  
-  #info1 tr:nth-child(even) {
-    background-color: #f2f2f2; /* Hintergrundfarbe für gerade Zeilen */
-  }
-  
-  #info1 tr:hover {
-    background-color: #ddd; /* Hintergrundfarbe für hover-Effekt */
-  }
-  
-  #info1 td:first-child {
-    font-weight: bold; /* Fettdruck für erste Spalte */
-  }
-  
   
 /* Stil für den Container der Infodiv */
 .info-container {
