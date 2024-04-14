@@ -3,6 +3,9 @@ import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS.js';
+import TileImage from 'ol/source/TileImage.js';
+import XYZ from 'ol/source/XYZ.js';
+
 import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -80,15 +83,7 @@ var layerSwitcher = new LayerSwitcher({
 });
 map.addControl(layerSwitcher);
 //Start Layer--------------------------------------------------
-const osmTileCr = new TileLayer({
-  title: "osm-color",
-  type: 'base',
-  source: new OSM({
-    url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  }),
-  visible: true,
-  opacity: 1
-});
+
 const exp_gew_info_layer = new VectorLayer({
   source: new VectorSource({
   format: new GeoJSON(),
@@ -236,10 +231,213 @@ const wmsGewWmsFgLayer = new TileLayer({
   visible: false,
   opacity: 1,
 });
+
+const gnAtlas2023 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "10", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2023",
+  opacity: 1.000000,
+  visible: false,
+});
 //Ende Layer--------------------------------------------------
+const gnAtlas2020 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "9", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2020",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas2017 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "8", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2017",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas2014 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "7", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2014",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas2012 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "6", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2012",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas2010 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "5", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2010",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas2009 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "4", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2009",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas2002 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "3", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "2002",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas1970 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "2", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "1970",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas1957 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "1", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "1957",
+  opacity: 1.000000,
+  visible: false,
+});
+const gnAtlas1937 = new TileLayer({
+  source: new TileWMS(({
+      url: "https://geo.grafschaft.de/arcgis/services/Migratrion_Okt_2020/BAS_Luftbilder_2/MapServer/WMSServer",
+      attributions: ' ',
+     params: {"LAYERS": "0", "TILED": "true", "VERSION": "1.3.0"},
+    })),
+  title: "1937",
+  opacity: 1.000000,
+  visible: false,
+});
+
+
+
+
+var baseDE_layer = new TileLayer({
+  title: "Base-DE",
+  name: "Base-DE",
+  opacity: 1.000000,
+  visible: false,
+  type: 'base',
+  source: new TileWMS({
+    url: "https://sgx.geodatenzentrum.de/wms_basemapde",
+    attributions: '© GeoBasis-DE / BKG (Jahr des letzten Datenbezugs) CC BY 4.0',
+    params: {
+      "LAYERS": "de_basemapde_web_raster_farbe",
+      "TILED": true, // "true" sollte ohne Anführungszeichen sein
+      "VERSION": "1.3.0"
+    },
+  }),
+});
+var dop20ni_layer = new TileLayer({
+  title: "DOP20 NI",
+  opacity: 1.000000,
+  visible: false,
+  type: 'base',
+  source: new TileWMS({
+    url: "https://www.geobasisdaten.niedersachsen.de/doorman/noauth/wms_ni_dop",
+    attributions: 'Orthophotos Niedersachsen, LGLN',
+    params: {
+      "LAYERS": "dop20",
+      "TILED": true, // "true" sollte ohne Anführungszeichen sein
+      "VERSION": "1.3.0"
+    },
+  }),
+});
+const googleSatLayer = new TileLayer({
+  title: "GoogleSat",
+  type: 'base',
+  baseLayer: false,
+  visible: false,
+  source: new TileImage({url: 'http://mt1.google.com/vt/lyrs=s&hl=pl&&x={x}&y={y}&z={z}' })
+});
+const googleHybLayer = new TileLayer({
+  title: "GoogleHybrid",
+  type: 'base',
+  baseLayer: false,
+  visible: false,
+  source: new TileImage({url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' })
+});
+const ESRIWorldImagery = new TileLayer({
+  title: 'ESRI-Sat',
+  type: 'base',
+  opacity: 1.000000,
+  visible: false,
+  source: new XYZ({
+      attributions: 'Powered by Esri',
+      url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+  })
+});
+const ESRIWorldGrey = new TileLayer({
+  title: 'ESRI-Grey',
+  type: 'base',
+  opacity: 1.000000,
+  visible: false,
+  source: new XYZ({
+      attributions: 'Powered by Esri',
+      url: 'http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+  })
+});
+const osmTileGr = new TileLayer({
+  title: "osm-grey",
+  className: 'bw',
+  type: 'base',
+  visible: false,
+  source: new OSM({
+      url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
+  }),
+});
+const osmTileCr = new TileLayer({
+  title: "osm-color",
+  name:  "osm-color",
+  type: 'base',
+  source: new OSM({
+      url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
+  }),
+  visible: true,
+  opacity: 0.75
+});
+
 
 const BwGroupP = new LayerGroup({
   title: "Bauw.(P)",
+  name: "Bauw.(P)",
   fold: true,
   fold: 'close',  
   layers: [ exp_bw_que_layer, exp_bw_due_layer, exp_bw_weh_layer, exp_bw_sle_layer]
@@ -247,6 +445,7 @@ const BwGroupP = new LayerGroup({
 
 const BwGroupL = new LayerGroup({
   title: "Bauw.(L)",
+  name: "Bauw.(L)",
   fold: true,
   fold: 'close',  
   layers: [ exp_gew_info_layer ]
@@ -260,13 +459,32 @@ const wmsLayerGroup = new LayerGroup({
   visible: true,
   layers: [ wmsLsgLayer, wmsNsgLayer, wmsUesgLayer, wmsWrrlFgLayer, wmsGewWmsFgLayer ]
 });
+const NOHAtlasGroup = new LayerGroup({
+  title: "NOH-Sat",
+  name: "NOH-Sat",
+  fold: true,
+  fold: 'close',
+  layers: [ gnAtlas2023, gnAtlas2020, gnAtlas2017, gnAtlas2014, gnAtlas2012, gnAtlas2010, gnAtlas2009, gnAtlas2002, gnAtlas1970, gnAtlas1957, gnAtlas1937]
+});
+
+
+const BaseGroup = new LayerGroup({
+  title: "Base",
+  name: "Base",
+  fold: true,
+  fold: 'close',
+  layers: [ESRIWorldImagery, ESRIWorldGrey, googleHybLayer, googleSatLayer, dop20ni_layer, baseDE_layer, osmTileGr, osmTileCr]
+});
 
 //Start Layer hinzufügen---------------------------------------
-map.addLayer(osmTileCr);
+map.addLayer(BaseGroup);
+map.addLayer(NOHAtlasGroup);
+map.addLayer(gew_layer_layer);
 map.addLayer(wmsLayerGroup);
 map.addLayer(BwGroupL);
 map.addLayer(BwGroupP);
-map.addLayer(gew_layer_layer);
+
+
 //Ende Layer hinzufügen---------------------------------------
 
 var toggleButtonU = new Toggle({
@@ -307,20 +525,27 @@ map.addLayer(vector);
 
 var selectInteraction = new Select({
   layers: [vector],
-  hitTolerance: 3,
+  hitTolerance: 5,
 });
 
 var selectFeat = new Select({
-  hitTolerance: 3,
-  multi: true,
+  hitTolerance: 5,
+  multi: false,
   condition: singleClick,
 });
-let layer_selected;
+
 
 selectFeat.on('select', function(e) {
-    let featureSelected = e.selected[0]; // erster selektiert Layer, für alle Layer: e.selected.forEach)
-    layer_selected = selectFeat.getLayer(featureSelected); 
+  let featureSelected = e.selected[0]; // erster selektiert Layer, für alle Layer: e.selected.forEach)
+  const layerName = selectFeat.getLayer(featureSelected).get('name');  
+  if (layerName !== 'gew') {  
+    layer_selected = selectFeat.getLayer(featureSelected);
+  } else {
+    selectFeat.getFeatures().clear(); // Hebt die Selektion auf
+  } 
 });
+
+let layer_selected;
 map.addInteraction(selectFeat);
 
 var popup = new PopupFeature({
@@ -427,9 +652,15 @@ function singleClickHandler(evt) {
 //map.on('singleclick', function (evt) {
   const visibleLayers = [];
   map.getLayers().forEach(layer => {
+      const layerName = layer.get('name');
+      
       if (layer.getVisible()) {
           if (layer instanceof LayerGroup) {
+              
+            console.log(layerName);
+            if (layerName !== 'NOH-Sat' && layerName !== 'Base'){
               visibleLayers.push(...getLayersInGroup(layer));
+            }
           } else {
               visibleLayers.push(layer);
               
@@ -441,22 +672,11 @@ function singleClickHandler(evt) {
 
   visibleLayers.forEach(layer => {
     const layerName = layer.get('name');
-    console.log(layerName);
+   
     if (layer.getVisible()) {
         const source = layer.getSource();
         if (source instanceof TileWMS && typeof source.getFeatureInfoUrl === 'function') {
-          const selectInteraction = new Select({
-            hitTolerance: 10 // Hier setzen Sie die hitTolerance-Eigenschaft
-          });
-          selectInteraction.on('select', function(event) {
-              const selectedFeatures = event.selected;
-              if (selectedFeatures.length > 0) {
-                  const selectedFeature = selectedFeatures[0];
-                  highlightSelectedFeature(selectedFeature);
-             }
-            });
-
-            map.addInteraction(selectInteraction);
+            
             const url = source.getFeatureInfoUrl(evt.coordinate, viewResolution, viewProjection, {'INFO_FORMAT': 'text/html'});
             if (url) {
                 fetch(url)
@@ -486,9 +706,6 @@ function singleClickHandler(evt) {
     }
   );
 };
-function highlightSelectedFeature(selectedFeature) {
-  // Code zur Hervorhebung des ausgewählten Features hier
-}
 
 function createInfoDiv(name, html) {
   const infoDiv = document.createElement('p');

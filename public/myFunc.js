@@ -1,3 +1,4 @@
+
 function checkForLinkInTH(html) {
     const table = document.createElement('table');
     table.innerHTML = html;
@@ -25,6 +26,6 @@ function checkForLinkInTH(html) {
             }
         }
     }
-
     return table.outerHTML;
 }
+
