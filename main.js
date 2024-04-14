@@ -311,7 +311,7 @@ var selectInteraction = new Select({
 });
 
 var selectFeat = new Select({
-  hitTolerance: 10,
+  hitTolerance: 3,
   multi: true,
   condition: singleClick,
 });
@@ -445,6 +445,18 @@ function singleClickHandler(evt) {
     if (layer.getVisible()) {
         const source = layer.getSource();
         if (source instanceof TileWMS && typeof source.getFeatureInfoUrl === 'function') {
+          const selectInteraction = new Select({
+            hitTolerance: 10 // Hier setzen Sie die hitTolerance-Eigenschaft
+          });
+          selectInteraction.on('select', function(event) {
+              const selectedFeatures = event.selected;
+              if (selectedFeatures.length > 0) {
+                  const selectedFeature = selectedFeatures[0];
+                  highlightSelectedFeature(selectedFeature);
+             }
+            });
+
+            map.addInteraction(selectInteraction);
             const url = source.getFeatureInfoUrl(evt.coordinate, viewResolution, viewProjection, {'INFO_FORMAT': 'text/html'});
             if (url) {
                 fetch(url)
@@ -474,6 +486,9 @@ function singleClickHandler(evt) {
     }
   );
 };
+function highlightSelectedFeature(selectedFeature) {
+  // Code zur Hervorhebung des ausgewählten Features hier
+}
 
 function createInfoDiv(name, html) {
   const infoDiv = document.createElement('p');
