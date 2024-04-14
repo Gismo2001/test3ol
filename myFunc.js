@@ -11,7 +11,7 @@ function checkForLinkInTH(html) {
         // Durchlaufe alle td-Tags im zweiten tr-Tag
         for (const td of tds) {
             // Prüfe, ob der Inhalt des td-Tags "https://" enthält
-            if (td.textContent.includes('https://')) {
+            if (td.textContent.includes('https://') || td.textContent.includes('http://')) {
                 // Wenn ja, erstelle ein a-Element und setze den Link
                 const link = td.textContent.trim();
                 const aElement = document.createElement('a');
