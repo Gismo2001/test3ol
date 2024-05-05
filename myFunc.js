@@ -29,3 +29,5 @@ function checkForLinkInTH(html) {
     return table.outerHTML;
 }
 
+
+

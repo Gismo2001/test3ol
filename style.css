@@ -1,83 +1,131 @@
-/* styles.css */
-/* Globale Stile für HTML und Body */
-html, body {
-    margin: 0;
-    height: 100%;
+
+
+
+@import "node_modules/ol/ol.css";
+
+*{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Stile für die Karte */
-.map {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
+body{
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.popup {
-    position: absolute;
-    background-color: rgba(252, 252, 252, 1);
-    
-    border: 1px solid #050505;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 5px;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    text-align: left;
-    overflow: auto;
-    max-height: 200px; /* Beispielwert, anpassen, wie benötigt */
-    max-width: 300px;
-    user-select: text; /* Erlaubt Textauswahl im Popup-Inhalt */
+#map {
+  width: 100vw;
+  height: 100vh;
+  position: relative; /* Hinzugefügt: Setzen Sie die Position des Karten-DIV auf relative */
 }
 
-
-.popup h1 {
-    font-size: 12px;
-    font-weight: bold;
+.ol-search ul {
+  color: #333;
+  font-size:0.85em;
+  max-width: 21em;
+  z-index: 20000;
+}
+.ol-search ul i {
+  display: block;
+  color: #333;
+  font-size:0.85em;
+}
+.ol-search input[type="search"] {
+  font-size: 14px; /* Ändere die Textgröße nach Bedarf */
 }
 
-.popup-content {
-    max-height: 200px;
+.info {
+  display: inline-block;
+  font-size: 14px;
+  width: 150px; /* Ändere die Breite nach Bedarf */
 }
 
 
-.select {
-    left: 8px;
-    top: 130px;
+.info a img {
+  height: 100px;
+  margin-right: .5em;
+  float: left;
 }
 
-.active {
-    /* Füge hier das Styling für den aktiven Zustand des Buttons hinzu */
-    background-color: #4CAF50; /* Beispielhafte Hintergrundfarbe */
-    color: white; /* Beispielhafte Textfarbe */
+.ol-bar.ol-collapse > .ol-bar-list {
+  display: none !important;
 }
 
-.ol-wmscapabilities ul {
-    padding: 0;
-}
+.myButton {
+  background-color: rgba(22,85,167,0.6);
+  color: white;
+  font-weight: 700;
+  text-align: center;
+  height: 25px;
+  width: 25px;
+  border-radius: 2px;
+  border: none;
+  align-items: center;
   
-/* Stil für den Container der Infodiv */
-.info-container {
-    border: 1px solid black;
-    background: rgb(255, 255, 255);
-    opacity: 1;
-    overflow-x: auto;
-    overflow-y: auto;
-    position: absolute;
-    bottom: 150px;
-    width: 85%;
-    left: 5px;
-    font-size: 18px;
-    z-index: 1005;
-  }
-  
-  /* Stil für das Schließen-Symbol */
-  .close-icon {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    cursor: pointer;
-    font-size: 20px;
-  }
+}
+
+.myButton:hover{
+  background-color: rgba(0,60,135,1);
+}
+
+.myButton.clicked{
+  background-color: rgba(22,170,35,0.8);
+}
+
+.myButton.clicked:hover{
+  background-color: rgba(22,170,35,0.8);
+}
+
+.lengthButtonDiv {
+  position: absolute;
+  bottom: 15px;
+  display: block;
+  margin: 1px auto auto 10px;
+}
+
+.areaButtonDiv {
+  position: absolute;
+  bottom: 50px;
+  display: block;
+  margin: 1px auto auto 10px;
+}
+
+.ol-tooltip {
+  position: relative;
+  background: rgba(0,0,0,0.5);
+  border-radius: 4px;
+  color: white;
+  padding: 4px 8px;
+  opacity: 0.7;
+  white-space: nowrap;
+  font-size: 12px;  
+}
+
+.ol-tooltip-measure {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.ol-tooltip-static {
+  background-color: #ffcc33;
+  color:black;
+  border: 1px solid white;
+}
+
+.ol-tooltip-measure:before,
+.ol-tooltip-static:before {
+  border-top: 6px solid rgba(0,0,0,0.5);
+  border-right: 6px solid transparent;
+  border-left: 6px solid transparent;
+  content:'';
+  position: absolute;
+  bottom: -6px;
+  margin-left: -7px;
+  left:50%;
+}
+
+.ol-tooltip-static:before{
+  border-top-color:  #ffcc33;
+}
