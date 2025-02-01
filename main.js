@@ -1864,9 +1864,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Deine Suchfunktion mit OpenLayers
   function highlightFeature(searchText, attribute) {
-      console.log("Suche nach:", searchText, "im Attribut:", attribute);
-      alert(`Suche nach "${searchText}" im Feld "${attribute}" gestartet!`);
-
       const source = exp_allgm_fsk_layer.getSource();
       const features = source.getFeatures();
       let found = false;
@@ -1887,7 +1884,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!found) {
-          alert("Kein passendes Feature gefunden!");
+          alert("Kein passendes Flurstück gefunden! Layer FSK angeschaltet und gezoomt?");
       }
   }
 });
