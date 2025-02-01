@@ -1,4 +1,5 @@
 import {Circle as CircleStyle, Fill, RegularShape, Icon, Stroke, Style, Text} from 'ol/style.js';
+import MultiPoint from 'ol/geom/MultiPoint';
 import { Point} from 'ol/geom.js';
 //extfunc.js
 const sleStyle = new Style({
@@ -36,6 +37,15 @@ const queStyle = new Style({
     src: './data/que.svg',
     scale: .9
     })
+});
+
+// neuer Style für gew_fl
+const exp_gew_fla_vecStyle = new Style({
+    stroke: new Stroke({
+    color: 'rgba(173, 114, 3, 1)',
+    width: 3
+    }),
+    
 });
 
 const gehoelz_vecStyle = new Style({
@@ -113,42 +123,61 @@ function getStyleForArtUmn(feature) {
     });
 };
 function getStyleForArtGewInfo(feature) {
-    const uIdValue = parseInt(feature.get('U_NR')); // Wandelt die Zeichenkette in eine Zahl um
     const uArt = feature.get('Kat');
+    const txtIdUabschn = feature.get('IDUabschn')
     let strokeColor;
-    let strokeWidth;
-    let lineDash;
+    let lineDash = [10, 15]; // Gilt für alle Linien
 
-    if (!isNaN(uIdValue)) { // Überprüfen, ob die Umwandlung erfolgreich war
-        if (uIdValue % 2 === 0) { // Überprüfen, ob die Zahl gerade ist
-            strokeColor = 'green'; // Beispiel: grüne Farbe für gerade Zahlen
-        } else {
-            strokeColor = 'red'; // Beispiel: rote Farbe für ungerade Zahlen
-        }
-        strokeWidth = 5;
-        // Überprüfen, ob "Kat" gleich "E" ist
-        if (uArt === 'E') {
-            lineDash = [10, 15]; // Gestrichelte Linie für "E"
-        }
+    // Linienfarbe festlegen abhängig von uArt
+    if (uArt === 'E') {
+        strokeColor = 'green'; // Grün für "E"
     } else {
-        // Handle den Fall, wenn die Umwandlung fehlschlägt
-        // Zum Beispiel: standardmäßige Farben und Stil für den Fehlerfall
-        strokeColor = 'gray';
-        strokeWidth = 5;
+        strokeColor = 'red'; // Rot für alles andere
     }
-    
-    return new Style({
-        fill: new Fill({
-            color: strokeColor
-        }),
-        stroke: new Stroke({
-            color: strokeColor,
-            width: strokeWidth,
-            lineDash: lineDash // Verwendung der lineDash-Eigenschaft für gestrichelte Linie, falls definiert
-        })
-    });    
-};
 
+    // Stil zurückgeben, der Linien und Punkte für Linienenden definiert
+    return [
+        new Style({
+            stroke: new Stroke({
+                color: strokeColor,
+                width: 5, // Feste Breite
+                lineDash: lineDash
+            }),
+            fill: new Fill({
+                color: strokeColor // Füllung abhängig von der Linienfarbe
+            })
+        }),
+        // Stil für die Kreise an den Linienenden
+        new Style({
+            geometry: function(feature) {
+                const coordinates = feature.getGeometry().getCoordinates(); // Koordinaten der Geometrie
+                return new MultiPoint([coordinates[0], coordinates[coordinates.length - 1]]); // Start- und Endpunkt
+            },
+            image: new CircleStyle({
+                radius: 5, // Größe des Kreises
+                fill: new Fill({
+                    color: 'black' // Schwarzer gefüllter Kreis
+                })
+            })
+        }),
+        new Style({
+            text: new Text({
+                text: txtIdUabschn, // Text ist der Wert von IDUabschn
+                font: 'bold 14px Arial',
+                fill: new Fill({
+                    color: '#000' // Schwarze Schriftfarbe
+                }),
+                stroke: new Stroke({
+                    color: '#fff', // Weißer Rand um den Text
+                    width: 3
+                }),
+                overflow: true, // Text wird auch außerhalb des Features angezeigt
+                placement: 'point', // Text wird an einem Punkt und nicht entlang der Linie platziert
+                rotation: 0, // Rotation auf 0 setzen, damit der Text waagerecht bleibt
+            })
+        })
+    ];
+}
 
 function getStyleForArtSonLin(feature) {   
     const artValue = feature.get('bauart');
@@ -159,7 +188,7 @@ function getStyleForArtSonLin(feature) {
     if (artValue === 'Anlegehilfe') {
         strokeColor = 'blue';
         strokeWidth = 5;
-    } else if (/sohlgl|umgehungs/i.test(artValue)) {
+    } else if (/sohlgl|umgehungs|fisch/i.test(artValue)) {
         strokeColor = 'red';
         strokeWidth = 5;
         lineDash = [10, 15];
@@ -226,7 +255,7 @@ function getStyleForArtEin(feature) {
     });
 };
 
-function getStyleForArtSonPun(feature) {   
+/* function getStyleForArtSonPun(feature) {   
     const artValue = feature.get('bauart');
     let iconSrc;
     switch (artValue) {
@@ -263,7 +292,42 @@ function getStyleForArtSonPun(feature) {
             scale: .9 
         })
     });
-};
+}; */
+
+function getStyleForArtSonPun(feature) {
+    const artValue = feature.get('bauart');
+    let iconSrc;
+
+    if (/boots/i.test(artValue)) {
+        iconSrc = './data/bwSonPun_Anleger.svg';
+    
+    }else if (/betriebs/i.test(artValue)) {
+        iconSrc = './data/sonPunBetrieb.svg';
+    
+    } else if (artValue === 'Infotafel') {
+        iconSrc = './data/sonPunInfo.svg';
+    } else if (artValue === 'Auskolkung') {
+        iconSrc = './data/sonPunKolk.svg';
+    } else if (artValue === 'Furt') {
+        iconSrc = './data/bwSonPun_Furt.svg';
+    } else if (artValue === 'Tor') {
+        iconSrc = './data/bwSonPun_Tor.svg';
+    } else if (artValue === 'Überfahrt') {
+        iconSrc = './data/bwSonPun_Ueberfahrt.svg';
+    } else if (artValue === 'Betriebspegel') {
+        iconSrc = './data/bwSonPun_Betriebspegel.svg';
+    } else {
+        iconSrc = './data/sonPunSonstige.svg';
+    }
+
+    return new Style({
+        image: new Icon({
+            src: iconSrc,
+            scale: 0.9
+        })
+    });
+}
+
 function machWasMitFSK(feature){
     console.log (feature.get('Art'));
 };
@@ -375,6 +439,22 @@ const endpointStyle = new Style({
 });
 const combinedStyle = [arrowStyle, endpointStyle];
 
+ 
+const gpsStyle = new Style({
+    fill: new Fill({
+      color: 'rgba(0, 0, 255, 0.2)',
+      opacity: 0.5,
+      
+    }),
+    image: new Icon({
+      src: './data/location-heading.svg',
+      imgSize: [27, 55],
+      rotateWithView: true,
+    }),
+  
+  });
+
+
 export { 
     bru_nlwknStyle,
     sleStyle,
@@ -384,6 +464,7 @@ export {
     queStyle,
     getStyleForArtSonLin, 
     km10scalStyle,
+    exp_gew_fla_vecStyle,
     gehoelz_vecStyle,
     getStyleForArtFSK,
     getStyleForArtEin,
@@ -393,8 +474,7 @@ export {
     km100scalStyle,
     km500scalStyle,
     combinedStyle,
+    gpsStyle,
     machWasMitFSK
 };
-    
-  
-
+   

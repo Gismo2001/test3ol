@@ -1,4 +1,4 @@
-<svg width="20px" height="20px" style="clip-rule:evenodd;fill-rule:evenodd;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision" version="1.1" viewBox="0 0 1.74 1.74" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><title>einDritterOrdnung</title>
+<svg width="20px" height="20px" style="clip-rule:evenodd;fill-rule:evenodd;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision" version="1.1" viewBox="0 0 1.74 1.74" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><title>dritter Ordnung</title>
  <defs>
   <style type="text/css">
    <![CDATA[
@@ -8,9 +8,9 @@
    ]]>
   </style>
  </defs>
- <g id="a">
+ <rect y=".0048671" width="1.74" height="1.74" style="clip-rule:evenodd;fill-opacity:.75;fill-rule:evenodd;fill:#fff;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;stroke-width:0"/><g id="a">
   
-  <circle class="fil0 str0" cx=".87" cy=".87" r=".785" style="stroke:#b41919"/>
-  <rect class="fil1" x=".54" y=".522" width=".6525" height=".6525" style="fill:#b41919"/>
+  <circle class="fil0 str0" cx=".87" cy=".87" r=".785" style="fill:#fff;stroke:#0000c8"/>
+  <rect class="fil1" x=".54" y=".522" width=".6525" height=".6525" style="fill:#0000c8;stroke-width:0"/>
  </g>
 </svg>

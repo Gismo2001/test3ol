@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=EDGE" /> 
+  <title>GB 1 web map</title>
+  <link rel="favicon" href="/assets/favicon-CAqyQVCa.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- <link rel="stylesheet" href="https://viglino.github.io/ol-ext/dist/ol-ext.css" /> -->
+  <style>
+    body {
+        /* overflow: hidden; */
+       margin: 0;
+    }
+   </style>
+
+
+
+
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL,Object.assign"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/eligrey/FileSaver.js/aa9f4e0e/FileSaver.min.js"></script>
+    <script src="myFunc.js"></script> <!-- Einbinden von myFunc.js -->
+    
+  <script type="module" crossorigin src="/assets/index-BrGoHj5c.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DMW54k_6.css">
+</head>
+<body>
+  <div id="map" class="map">
+  <div id="modalContainer"></div>
+  <button onclick="openCustomPrompt()">FSK-Suche</button>
+
+
+<!--   
+  <div class="addQueryDiv" id="addQueryDiv">
+    <div class="hearderDiv" id="headerDiv">
+      <label for="">Attribute Query</label>
+    </div><br>
+    <label for="">Select Layer</label>
+    <select name="selectLayer" id="selectLayer">
+    </select><br><br>
+
+    <label for="">Select Attribute</label>
+    <select name="selectAttribut" id="selectAttribut">
+    </select><br><br>
+
+    <label for="">Select Operator</label>
+    <select name="selectOperator" id="selectOperator">
+    </select><br><br>
+
+    <label for="">Enter Value</label>
+    <input type="text" name="enterValue" id="enterValue">
+    </select><br><br>
+
+    <button type="button" id="addQryRun" class="addQryRun" onclick="attributeQuery()">Run</button>
+  </div>
+   -->
+  <!-- <div id="searchBox" class="searchBox">
+    <input type="text" id="addressInput" placeholder="Adresse/FSK"/>
+    <button><span>🔍</span></button>
+    <select id="searchSelect">
+      <option value="adresse">Adresse</option>
+      <option value="fsk">FSK</option>
+    </select>
+  </div> -->
+  
+  <div id="custom-controls" class="custom-controls">
+  </div>
+  
+  <div id="popup" class="ol-popup">
+        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content"></div>
+  </div>
+    
+  <div class="controls hidden">
+    <label for="projecSelect">Coord.:</label>
+    <select id="projecSelect">
+      <option value="EPSG:4326">EPSG:4326</option>
+      <option value="EPSG:3857">EPSG:3857</option>
+      <option value="EPSG:32632">EPSG:32632</option>
+    </select>
+    <input type="checkbox" id="toggle-checkbox">
+    <div id="mouse-position" class="custom-mouse-position"></div>
+  </div>
+  
+  <div class="button-container">
+    <button id="hide-button"><b>C</b></button>
+    <button id="print-button"><b>P</b></button>
+  </div>
+  
+  <div id="notification">
+    <p>Es gab einen Fehler bei der Standortbestimmung.</p>
+    <p>Möchten Sie es erneut versuchen? <span id="retryButton">Erneut versuchen</span></p>
+  </div>
+  
+</div> 
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+  
+</body>
+</html>

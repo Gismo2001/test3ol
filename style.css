@@ -1,7 +1,5 @@
-
-
-
 @import "node_modules/ol/ol.css";
+@import "node_modules/ol-ext/dist/ol-ext.css";
 
 *{
   box-sizing: border-box;
@@ -9,23 +7,272 @@
   padding: 0;
 }
 
-body{
+body,
+html {
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  z-index: 1;
 }
 
 #map {
   width: 100vw;
   height: 100vh;
-  position: relative; /* Hinzugefügt: Setzen Sie die Position des Karten-DIV auf relative */
+}
+ /* Style für den Print-Button P */
+ .get-position {
+  position: absolute;
+  bottom: 20px;
+  left: 10px;
+  padding: 3px 3px; 
+  cursor: pointer;
+  font-size: 12px;         
+  background-color: #f10404;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+ #notification {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  padding: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1009;
+}
+#notification p {
+  margin: 0;
 }
 
+/*Standortbestimmung nochmal Button  */
+#retryButton {
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: underline;
+}
+
+ /* Beim Start OSM in Grautönen*/ 
+.bw {
+  filter: grayscale(100%);
+}
+
+.map:-webkit-full-screen {
+  height: 100%;
+  margin: 0;
+}
+
+.map:fullscreen {
+  height: 100%;
+}
+
+.ol-full-screen {
+  right: .5em;
+  top: 0.375em;
+}
+
+.map .ol-rotate {
+  top: calc(100vh - 100px)
+}
+
+.lengthButtonDiv {
+  position: relative;
+  display: block;
+  margin: 1px auto auto 10px;
+}
+
+.areaButtonDiv {
+  position: relative;
+  display: block;
+  margin: 1px auto auto 10px;
+}
+
+
+.locate {
+  top: 125px;
+  left: 8px;
+}
+
+.locate.active {
+  background-color: #4CAF50; /* Grüne Hintergrundfarbe im aktiven Zustand */
+}
+
+.locate.active button {
+  color: white; /* Weiße Schriftfarbe im aktiven Zustand */
+}
+
+.locateMStyle {
+  top: 250px;
+  left: 8px;
+}
+
+.tooltip {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  position: absolute;
+  display: none;
+}
+
+.ol-popup {
+  background-color: rgb(255, 255, 255);
+  padding: 5px;
+  padding-top: 25px;
+  position: absolute;
+  border-radius: 5px;
+  /*box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); */
+  border: 1px solid #cccccc;
+  left: 20px;  
+  top: -20px; 
+  min-width: 280px;
+  z-index: 1010;
+}
+.ol-popup h1 {
+  font-size: 1em;
+  background-size: 2em;
+  padding-left: 3em;
+}
+.ol-popup:after,
+.ol-popup:before {
+  top: 10px;  
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.ol-popup:after {
+  border-top-color: white;
+  border-width: 10px;
+  left: -10px;
+  margin-left: -10px;
+  transform: rotate(90deg); /* Drehung um 90 Grad */
+}
+.ol-popup:before {
+  border-top-color: #4400ff;
+  border-width: 11px;
+  left: -10px;
+  margin-left: -11px;
+  transform: rotate(90deg); /* Drehung um 90 Grad */
+}
+.ol-popup-closer {
+  text-decoration: none;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  height: 10px;
+}
+.ol-popup-closer:after {
+  content: "X";
+  font-weight: bold; /* Fett formatieren */
+}
+.popup-text {
+  margin-right: 10px; /* Ändere den Abstand zum "X" nach Bedarf */
+}
+.ol-button:hover {
+  background-color: #005a9e;
+}
+.custom-controls1 {
+  top: 150px;
+  left: 7px;
+  height: 17px; 
+  width: 17px;
+  z-index: 1011;
+}
+/* Marker für Koordinatenanzeige */
+.marker {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #000; /* Randstil des Kreises */
+  border-radius: 50%; /* Macht den Kreis */
+  position: relative; /* Erforderlich, um den Punkt in der Mitte zu positionieren */
+}
+.marker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background-color: #000; /* Farbe des Punktes */
+  border-radius: 50%; /* Macht den Punkt */
+}
+
+.controls * {
+  font-size: 12px; /* Hier kannst du die gewünschte Größe für alle Elemente innerhalb des Div-Containers angeben */
+}
+.controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1003;
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(167, 164, 164, 0.412);
+}
+.controls {
+  display: flex; /* Verwende Flexbox für die Ausrichtung der Elemente */
+  align-items: center; /* Zentriere die Elemente vertikal */
+}
+.hidden {
+  display: none;
+}
+.locked {
+  pointer-events: none;
+  opacity: 0.5; /* Optional: Reduziert die Deckkraft des Elements, um anzuzeigen, dass es gesperrt ist */
+}
+.unlocked {
+  pointer-events: auto; /* Aktiviert Pointer-Ereignisse */
+  opacity: 1; /* Setzt die Deckkraft auf den normalen Wert */
+}
+/* 
+.custom-controls2 {
+  top: 14em;
+  left: .5em;
+  height: 1.375em; 
+  width: 1.375em;
+  z-index: 1004;
+}
+ */
+.button-container {
+  text-align: center;
+  margin-top: 10px;
+  position: absolute;
+  bottom: 15px;
+  left: 40px;
+  transform: translateX(-50%);
+  z-index: 1005;
+  font-size: 16px;
+  font-weight: bold; 
+}
+.button-container button {
+  width: 25px; /* Setze die Breite der Buttons auf 25px */
+  height: 25px; /* Setze die Höhe der Buttons auf 25px */
+}
+#toggle-checkbox {
+  margin-left: 10px; /* Füge einen Abstand zwischen der Checkbox und dem Mouse-Position-Element hinzu */
+}
+#mouse-position {
+  margin-left: 10px; /* Füge einen Abstand zwischen der Checkbox und dem Mouse-Position-Element hinzu */
+}
+.hidden {
+  display: none;
+}
 .ol-search ul {
   color: #333;
   font-size:0.85em;
   max-width: 21em;
-  z-index: 20000;
+  z-index: 1006;
 }
 .ol-search ul i {
   display: block;
@@ -35,97 +282,118 @@ body{
 .ol-search input[type="search"] {
   font-size: 14px; /* Ändere die Textgröße nach Bedarf */
 }
-
-.info {
-  display: inline-block;
-  font-size: 14px;
-  width: 150px; /* Ändere die Breite nach Bedarf */
+/* Stil für den Container der Infodiv */
+.Info {
+  border: 1px solid black;
+  position: absolute; 
+  overflow-x: auto;
+  overflow-y: auto;
+  z-index: 1007;
+  background: rgb(255, 255, 255);
+  bottom: 150px;
+  width: 80%;
+  left: 5px;
+  font-size: 16px;
+}
+/* Stil für das Schließen-Symbol */
+.close-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  font-size: 20px;
 }
 
+/*
+ .info {
+  display: inline-block;
+  font-size: 14px;
+  width: 150px; /* Ändere die Breite nach Bedarf 
+} 
+*/
 
+/*
 .info a img {
   height: 100px;
   margin-right: .5em;
   float: left;
 }
+*/
 
-.ol-bar.ol-collapse > .ol-bar-list {
-  display: none !important;
+.select {
+  position: absolute;
+  left: 8px;
+  top: 220px;
+  z-index: 1008;
 }
-
-.myButton {
-  background-color: rgba(22,85,167,0.6);
-  color: white;
-  font-weight: 700;
-  text-align: center;
-  height: 25px;
-  width: 25px;
+.active {
+  /* Styling für den aktiven Zustand des Buttons */
+  background-color: #4CAF50; /* Beispielhafte Hintergrundfarbe */
+  color: white; /* Beispielhafte Textfarbe */
+}
+#popup-content {
+  user-select: text;
+}
+/* 
+.addQueryDiv {
+  position: absolute;
+  display: block;
+  margin: 70px auto auto 45px;
+  padding: 10px;
+  width: 250px;
+  height: 250px;
+  background-color: rgba(255,255,255,0.9);
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.45;
   border-radius: 2px;
-  border: none;
-  align-items: center;
-  
+  border: 1px solid white;
+  box-shadow: 0px 0px 15px grey;
+  z-index: 1012;
+  overflow: scroll;
 }
 
-.myButton:hover{
-  background-color: rgba(0,60,135,1);
+#headerDiv  {
+  background-color: midnightblue;
+  height: 35px;
 }
 
-.myButton.clicked{
-  background-color: rgba(22,170,35,0.8);
-}
-
-.myButton.clicked:hover{
-  background-color: rgba(22,170,35,0.8);
-}
-
-.lengthButtonDiv {
-  position: absolute;
-  bottom: 15px;
-  display: block;
-  margin: 1px auto auto 10px;
-}
-
-.areaButtonDiv {
-  position: absolute;
-  bottom: 50px;
-  display: block;
-  margin: 1px auto auto 10px;
-}
-
-.ol-tooltip {
-  position: relative;
-  background: rgba(0,0,0,0.5);
-  border-radius: 4px;
+#headerDiv label {
   color: white;
-  padding: 4px 8px;
-  opacity: 0.7;
-  white-space: nowrap;
-  font-size: 12px;  
 }
 
-.ol-tooltip-measure {
-  opacity: 1;
+.addQueryDiv select {
+  width: 225px;
+  height: 35px;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  margin: 0px auto 0px 10px;
+}
+
+.addQueryDiv input {
+width: 225px;
+height: 35px;
+border: 1px solid lightgrey;
+border-radius: 3px;
+margin: 0px auto 0px 10px;
+}
+
+.addQueryDiv label {
+  color: grey;
+  margin: 10px 10px 0px 10px;
+}
+
+.addQueryDiv label:nth-child(1) {
+  margin: 10px;
   font-weight: bold;
 }
 
-.ol-tooltip-static {
-  background-color: #ffcc33;
-  color:black;
-  border: 1px solid white;
-}
-
-.ol-tooltip-measure:before,
-.ol-tooltip-static:before {
-  border-top: 6px solid rgba(0,0,0,0.5);
-  border-right: 6px solid transparent;
-  border-left: 6px solid transparent;
-  content:'';
-  position: absolute;
-  bottom: -6px;
-  margin-left: -7px;
-  left:50%;
-}
-
-.ol-tooltip-static:before{
-  border-top-color:  #ffcc33;
-}
+.addQryRun {
+  color: white;
+  background-color: green;
+  border-radius: 3px;
+  border: 1px solid darkgreen;
+  height: 35px;
+  width: 50px;
+  margin: 10px;
+} */
