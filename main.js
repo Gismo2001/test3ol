@@ -73,6 +73,7 @@ import {
   getStyleForArtGewInfo
 } from './extStyle';
 
+
 //var popup; // Globale Variable für das Popup
 
 // Funktion zum Verschieben des DIVs
@@ -1160,10 +1161,15 @@ map.on('click', function (evt) {
         } else {
           foto4Html = " Foto 4 ";
         }
+        var rwert = feature.get('rwert');
+        var hwert = feature.get('hwert');
+        let result = UTMToLatLon_Fix(rwert, hwert, 32, true);
+
          content.innerHTML =
           '<div style="max-height: 200px; overflow-y: auto;">' +
           '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') + '</p>' +
           '<p>' + "Id = " + feature.get('bw_id') +  ' (' + (feature.get('KTR') ? feature.get('KTR') : 'k.A.') + ')' +  '</p>' +
+          `<p><a href="https://www.google.com/maps?q=&layer=c&cbll=${result}&cbp=12,90,0,0,1" target="_blank" rel="noopener noreferrer">Google Maps Link</a></p>` +
           '<p>' + "U-Pflicht = " + feature.get('upflicht') + '</p>' +
           '<p>' + "Bauj. = " + (feature.get('baujahr') ? feature.get('baujahr') : 'k.A.') + '</p>' +
           '<p>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html + 
@@ -1342,7 +1348,10 @@ map.on('click', function (evt) {
     if (layname === 'sle') {
       coordinates = evt.coordinate; 
       popup.setPosition(coordinates);
-      var foto1Value = feature.get('foto1');
+        var rwert = feature.get('rwert');
+        var hwert = feature.get('hwert');
+        
+        var foto1Value = feature.get('foto1');
         var foto1Html = '';
         var foto2Value = feature.get('foto2');
         var foto2Html = '';
@@ -1371,11 +1380,15 @@ map.on('click', function (evt) {
         } else {
           foto4Html = " Foto 4 ";
         }
+        
+        let result = UTMToLatLon_Fix(rwert, hwert, 32, true);
+        
         content.innerHTML =
           '<div style="max-height: 200px; overflow-y: auto;">' +
           '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') + '</p>' +
           '<p>' + "Id = " + feature.get('bw_id') +  ' (' + feature.get('KTR') +')' +  '</p>' +
           '<p>' + "WSP (OW) = " + feature.get('WSP_OW') + " m" +  "  WSP (UW) = " + feature.get('WSP_UW') + " m" + '</p>' +
+          `<p><a href="https://www.google.com/maps?q=&layer=c&cbll=${result}&cbp=12,90,0,0,1" target="_blank" rel="noopener noreferrer">Google Maps Link</a></p>` +
           '<p>' + "Bauj. = " + feature.get('baujahr') + '</p>' +
           '<p>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html + 
            '<br>' + '<u>' + "Beschreibung (kurz): " + '</u>' + feature.get('beschreib') + '</p>' +
@@ -1389,45 +1402,44 @@ map.on('click', function (evt) {
           coordinates = evt.coordinate; 
           popup.setPosition(coordinates);
           var foto1Value = feature.get('foto1');
-            var foto1Html = '';
-            var foto2Value = feature.get('foto2');
-            var foto2Html = '';
-            var foto3Value = feature.get('foto3');
-            var foto3Html = '';
-            var foto4Value = feature.get('foto4');
-            var foto4Html = '';
-            
-            if (foto1Value && foto1Value.trim() !== '') {
+          var foto1Html = '';
+          var foto2Value = feature.get('foto2');
+          var foto2Html = '';
+          var foto3Value = feature.get('foto3');
+          var foto3Html = '';
+          var foto4Value = feature.get('foto4');
+          var foto4Html = '';
+          if (foto1Value && foto1Value.trim() !== '') {
               foto1Html = '<a href="' + foto1Value + '" onclick="window.open(\'' + foto1Value + '\', \'_blank\'); return false;">Foto 1</a>';
-            } else {
+          } else {
               foto1Html =   " Foto 1 ";
-            }
-            if (foto2Value && foto2Value.trim() !== '') {
-              foto2Html = '<a href="' + foto2Value + '" onclick="window.open(\'' + foto2Value + '\', \'_blank\'); return false;">Foto 2</a>';
-            } else {
+          }
+          if (foto2Value && foto2Value.trim() !== '') {
+            foto2Html = '<a href="' + foto2Value + '" onclick="window.open(\'' + foto2Value + '\', \'_blank\'); return false;">Foto 2</a>';
+          } else {
               foto2Html = " Foto 2 ";
-            }
-            if (foto3Value && foto3Value.trim() !== '') {
-              foto3Html = '<a href="' + foto3Value + '" onclick="window.open(\'' + foto3Value + '\', \'_blank\'); return false;">Foto 3</a>';
-            } else {
-              foto3Html = " Foto 3 ";
-            }
-            if (foto4Value && foto4Value.trim() !== '') {
-              foto4Html = '<a href="' + foto4Value + '" onclick="window.open(\'' + foto4Value + '\', \'_blank\'); return false;">Foto 4</a>';
-            } else {
-              foto4Html = " Foto 4 ";
-            }
-            content.innerHTML =
-              '<div style="max-height: 200px; overflow-y: auto;">' +
-              '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') + '</p>' +
-              '<p>' + "Id = " + feature.get('bw_id') +  ' (' + feature.get('KTR') +')' +  '</p>' +
-              //'<p>' + "WSP1 (OW) = " + feature.get('Ziel_OW1').toFixed(2) + " m" +  "  WSP2 (OW) = " + feature.get('Ziel_OW2').toFixed(2) + " m" + '</p>' +
-              '<p>' + "WSP1 (OW) = " + feature.get('Ziel_OW1') + " m" +  "  WSP2 (OW) = " + feature.get('Ziel_OW2') + " m" + '</p>' +
-              '<p>' + "Bauj. = " + feature.get('baujahr') + '</p>' +
-              '<p>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html + 
-               '<br>' + '<u>' + "Beschreibung (kurz): " + '</u>' + feature.get('beschreib') + '</p>' +
-               '<p>' + beschreibLangHtml + '</p>' +
-              '</div>';
+          }
+          if (foto3Value && foto3Value.trim() !== '') {
+            foto3Html = '<a href="' + foto3Value + '" onclick="window.open(\'' + foto3Value + '\', \'_blank\'); return false;">Foto 3</a>';
+          } else {
+            foto3Html = " Foto 3 ";
+          }
+          if (foto4Value && foto4Value.trim() !== '') {
+            foto4Html = '<a href="' + foto4Value + '" onclick="window.open(\'' + foto4Value + '\', \'_blank\'); return false;">Foto 4</a>';
+          } else {
+            foto4Html = " Foto 4 ";
+          }
+          content.innerHTML =
+          '<div style="max-height: 200px; overflow-y: auto;">' +
+          '<p style="font-weight: bold; text-decoration: underline;">' + feature.get('name') + '</p>' +
+          '<p>' + "Id = " + feature.get('bw_id') +  ' (' + feature.get('KTR') +')' +  '</p>' +
+           //'<p>' + "WSP1 (OW) = " + feature.get('Ziel_OW1').toFixed(2) + " m" +  "  WSP2 (OW) = " + feature.get('Ziel_OW2').toFixed(2) + " m" + '</p>' +
+          '<p>' + "WSP1 (OW) = " + feature.get('Ziel_OW1') + " m" +  "  WSP2 (OW) = " + feature.get('Ziel_OW2') + " m" + '</p>' +
+          '<p>' + "Bauj. = " + feature.get('baujahr') + '</p>' +
+          '<p>' + foto1Html + " " + foto2Html + " " + foto3Html + " " + foto4Html + 
+          '<br>' + '<u>' + "Beschreibung (kurz): " + '</u>' + feature.get('beschreib') + '</p>' +
+          '<p>' + beschreibLangHtml + '</p>' +
+          '</div>';
           
         }
 
@@ -1583,34 +1595,37 @@ function transformCoordinateToMousePosition32632(coordinate) {
   return transform(coordinate, 'EPSG:3857', 'EPSG:32632');
 }
 
-//--------------------------------------------Hyerperlink um ein neues Browserfenster zu öffnen wird dem Popup hinzugefügt
 document.addEventListener('DOMContentLoaded', function () {
   var popup = document.getElementById('popup');
-  
+  var bw_click = popup.id;
+  console.log(bw_click);
   var popupCloser = document.getElementById('popup-closer');
   var container = document.createElement('div');
   var link = document.createElement('a');
-  //schreibeInnerHtml(layer);
+  console.log(popup);
+
   link.textContent = 'Weitere Infos';
-  //link.href = '#'; // Verhindert, dass der Link die Seite neu lädt
-  //link.addEventListener('click', function(event) {
-  //  event.preventDefault(); // Verhindert die Standardaktion des Links
-  //  var newWindow = window.open('', '_blank');
-  //  newWindow.document.body.innerHTML = 
-  //    '<p>Hallo neue Welt 2</p>'
-  
-  //});
-  
-  //***********************Alternativ einen Bericht öffnen
-  link.addEventListener('click', function(event) {
-  event.preventDefault(); // Verhindert die Standardaktion des Links
-  var newWindow = window.open('https://nlwkn.hannit-share.de/index.php/apps/files/files/11334138?dir=/db/DIN/Rep&openfile=true', '_blank');
+
+  // Beispielwerte für rwert und hwert
+  let rwert = 52.458365; // Beispielwert für Breitengrad
+  let hwert = 7.067449;  // Beispielwert für Längengrad
+
+  link.addEventListener('click', function (event) {
+      event.preventDefault(); // Verhindert die Standardaktion des Links
+      openMapWithCoords(rwert, hwert);
   });
 
   container.appendChild(link);
   container.appendChild(popupCloser);
   popup.appendChild(container);
 });
+
+function openMapWithCoords(rwert, hwert) {
+  var url = `https://www.google.com/maps?q=${rwert},${hwert}&layer=c&cbll=${rwert},${hwert}&cbp=12,90,0,0,1`;
+  var newWindow = window.open(url, '_blank');
+}
+
+
 //--------------------------------------------Popup schließen
 document.getElementById('popup-closer').onclick = function () {
   popup.setPosition(undefined);
@@ -2073,3 +2088,38 @@ searchSelect.addEventListener('change', function(event) {
 }); */
 
 
+
+function UTMToLatLon_Fix(east, north, zone, isNorthernHemisphere) {
+  const a = 6378137;
+  const e = 0.081819191;
+  const k0 = 0.9996;
+  const pi = Math.PI;
+
+  if (!isNorthernHemisphere) {
+      north -= 10000000;
+  }
+
+  let longOrigin = (zone - 1) * 6 - 180 + 3;
+  let M = north / k0;
+  let e1 = (1 - Math.sqrt(1 - e ** 2)) / (1 + Math.sqrt(1 - e ** 2));
+  let mu = M / (a * (1 - e ** 2 / 4 - 3 * (e ** 4) / 64 - 5 * (e ** 6) / 256));
+  
+  let phi1Rad = mu + (3 * e1 / 2 - 27 * (e1 ** 3) / 32) * Math.sin(2 * mu)
+              + (21 * (e1 ** 2) / 16 - 55 * (e1 ** 4) / 32) * Math.sin(4 * mu)
+              + (151 * (e1 ** 3) / 96) * Math.sin(6 * mu);
+
+  let N1 = a / Math.sqrt(1 - e ** 2 * Math.sin(phi1Rad) ** 2);
+  let T1 = Math.tan(phi1Rad) ** 2;
+  let C1 = (e ** 2) * Math.cos(phi1Rad) ** 2 / (1 - e ** 2);
+  let R1 = a * (1 - e ** 2) / Math.pow(1 - e ** 2 * Math.sin(phi1Rad) ** 2, 1.5);
+  let D = (east - 500000) / (N1 * k0);
+
+  let lat = (phi1Rad - (N1 * Math.tan(phi1Rad) / R1) * (D ** 2 / 2
+      - (5 + 3 * T1 + 10 * C1 - 4 * C1 ** 2 - 9 * e ** 2) * (D ** 4) / 24
+      + (61 + 90 * T1 + 298 * C1 + 45 * T1 ** 2 - 252 * e ** 2 - 3 * C1 ** 2) * (D ** 6) / 720)) * 180 / pi;
+
+  let lon = longOrigin + ((D - (1 + 2 * T1 + C1) * (D ** 3) / 6
+      + (5 - 2 * C1 + 28 * T1 - 3 * C1 ** 2 + 8 * e ** 2 + 24 * T1 ** 2) * (D ** 5) / 120) / Math.cos(phi1Rad)) * 180 / pi;
+
+  return `${lat.toFixed(6)},${lon.toFixed(6)}`;
+}
