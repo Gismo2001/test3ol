@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.2",
+    "colormap": "^2.3.2",
     "font-awesome": "^4.7.0",
     "jspdf": "^2.5.1",
-    "ol": "^9.0.0",
+    "ol": "^10.6.1",
     "ol-ext": "^4.0.18",
     "proj4": "^2.11.0"
   }
