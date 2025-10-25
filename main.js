@@ -22,7 +22,7 @@ import TileWMS from 'ol/source/TileWMS.js';
 import TileImage from 'ol/source/TileImage.js';
 import XYZ from 'ol/source/XYZ.js';
 import GeoTIFF from 'ol/source/GeoTIFF.js';
-import WebGLTile from 'ol/layer/WebGLTile.js';
+//import WebGLTile from 'ol/layer/WebGLTile.js';
 
 import WebGLTileLayer from 'ol/layer/WebGLTile.js';
 
@@ -127,6 +127,7 @@ const GeoTIFFLayer = new WebGLTileLayer({
   name: 'geotiffLayer',
   visible: true,
    style: (pixel) => {
+    console.log(pixel);
     const height = pixel.get('Kanal 1'); // Annahme: 'height' Eigenschaft ist verfügbar
     let fillColor = 'gray';
     for (const range of heightColorMap) {
@@ -280,6 +281,7 @@ document.body.appendChild(popup);
 
 map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
+  console.log(evt.coordinate);
   let foundFeature = false;
 
   map.forEachFeatureAtPixel(evt.pixel, (feature) => {
@@ -287,7 +289,7 @@ map.on('singleclick', async (evt) => {
     const props = feature.getProperties();
     const tifUrl = props.dgm1;
     const bbox = feature.getGeometry().getExtent();
-
+    console.log('Feature-Eigenschaften:', props);
     popup.style.left = evt.pixel[0] + 'px';
     popup.style.top = evt.pixel[1] + 'px';
     popup.innerHTML = `
