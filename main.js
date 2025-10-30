@@ -47,7 +47,6 @@ import SearchFeature from 'ol-ext/control/SearchFeature';
 import WMSCapabilities from'ol-ext/control/WMSCapabilities';
 import collection from 'ol/Collection';
 
-
 import CanvasAttribution from 'ol-ext/control/CanvasAttribution';
 import CanvasTitle from 'ol-ext/control/CanvasTitle';
 import CanvasScaleLine from 'ol-ext/control/CanvasScaleLine';
@@ -78,14 +77,10 @@ import GeoTIFFSource from 'ol/source/GeoTIFF.js';
 import GeoTIFF from 'ol/source/GeoTIFF.js';
 import WebGLTileLayer from 'ol/layer/WebGLTile.js';
 
-
-
 //projektion definieren und registrieren
 proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
 proj4.defs('EPSG:25832', '+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs +type=crs');
 register(proj4);
-
-
 
 // einfache Farbklassifizierung
 const heightColorMap = [
@@ -123,25 +118,21 @@ const GeoTIFFLayer = new WebGLTileLayer({
   name: 'geotiffLayer',
   visible: true,
 
-  style: {
-    // Definieren Sie die Farbe basierend auf dem normalisierten Wert von Band 0
-    color: [
-      'case',
-      // Bedingung 1: Wenn Band 0 (normalisierte Höhe) <= 0.0 (entspricht 10m)
-      ['<=', ['band', 0], 0.0], 'rgb(0,60,0)', // <= 10m
-
-      // Bedingung 2: Wenn Band 0 <= 0.25 (entspricht 15m)
-      ['<=', ['band', 0], 0.25], 'rgb(0,150,0)', // <= 15m
-
-      // Bedingung 3: Wenn Band 0 <= 0.75 (entspricht 25m)
-      ['<=', ['band', 0], 0.75], 'rgb(200,200,0)', // <= 25m
-
-      // Bedingung 4: Wenn Band 0 <= 1.0 (entspricht 30m)
-      ['<=', ['band', 0], 1.0], 'rgb(255,120,0)', // <= 30m (Der Wert aus der ursprünglichen ColorMap)
-      
-      // Standardwert (für alle anderen Fälle, z.B. NoData oder Werte > 30m, falls vorhanden)
-      'rgb(255,255,255)' 
-    ]
+ style: (pixel) => 
+  { 
+    console.log('pixel:', pixel ); 
+    const height = pixel.get('Kanal 1'); 
+    let fillColor = 'gray'; 
+    for (const range of heightColorMap) {
+       if (height <= range.max) { 
+        fillColor = range.color; 
+        break; 
+      }
+     } return new Style({ 
+      fill: new Fill({ 
+        color: fillColor 
+      }) 
+    }); 
   },
 });
 
@@ -164,8 +155,6 @@ const dgmLayer = new VectorLayer({
   }),
 });
 
-
-
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
   zoom: 9
@@ -184,8 +173,7 @@ const map = new Map({
   interactions: defaultInteractions().extend([new DragRotateAndZoom()])
 });
 
-
-
+//-------------------------------------------sonstige Layer und Layer-Switcher
 const gew_layer_layer = new VectorLayer({
   source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gew.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
   title: 'gew', 
@@ -235,7 +223,7 @@ const layerSwitcher = new LayerSwitcher({
   }
 });
 map.addControl(layerSwitcher);
-// Event-Listener für Sichtbarkeitsänderung
+
 layerSwitcher.on('layer:visible', function(event) {
  const layer = event.layer; // Überprüfe die Struktur des Events
  console.log('Layer:', layer);
@@ -253,95 +241,143 @@ map.addLayer(gew_layer_layer);
 map.addLayer(GeoTIFFLayer);
 map.addLayer(dgmLayer);
 
-// --- Popup für Info / Auswahl
+
+// --- Popup für Info / Auswahl ---
 const popup = document.createElement('div');
 popup.id = 'popup';
 popup.style.cssText = `
   position: absolute;
   background: white;
-  padding: 6px;coordinatedgm_kacheln
+  padding: 6px;
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 13px;
 `;
 document.body.appendChild(popup);
 
+// globale Variable für aktuell geladenes GeoTIFF-DGM:
+let activeDgmRasterLayer = null; // wird in addDgmLayer gesetzt
 
-map.on('click', function (evt) {
+map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
-  
-  // Die getData-Methode der GeoTIFFSource
-  // nimmt die Koordinate in der View-Projektion entgegen.
-  source.getData(coordinate).then(function (data) {
-    if (data && data.length > 0) {
-      // GeoTIFFSource liefert ein Array von Bandwerten.
-      // Band 0 ist der erste Bandwert (in Ihrem Fall der normalisierte Höhenwert).
-      const band0Value = data[0]; 
-      
-      // Da normalize: true gesetzt ist, ist der Wert zwischen 0 und 1.
-      // Um den realen Höhenwert zu erhalten:
-      // min: 10, max: 30
-      const realMin = 10;
-      const realMax = 30;
-      const realHeight = band0Value * (realMax - realMin) + realMin;
+  console.log('Klick-Koordinaten:', coordinate);
 
-      console.log('--- Pixel-Information (Klick) ---');
-      console.log('Normalisierter Band 0 Wert:', band0Value);
-      console.log('Geschätzte Höhe (m):', realHeight.toFixed(2) + 'm');
-      console.log('Koordinaten:', toLonLat(coordinate));
-    } else {
-      console.log('Keine GeoTIFF-Daten an dieser Koordinate gefunden.');
+  // Sichtbarkeit des DGM-Kacheln-Layers prüfen
+  const kachelnVisible = dgmLayer && dgmLayer.getVisible();
+  console.log('DGM-Kacheln sichtbar:', kachelnVisible);
+
+  // Popup vorbereiten (falls noch nicht angelegt)
+  const popup = document.getElementById('popup') || (() => {
+    const div = document.createElement('div');
+    div.id = 'popup';
+    div.style.cssText = `
+      position: absolute;
+      background: white;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    `;
+    document.body.appendChild(div);
+    return div;
+  })();
+
+  // --- FALL 1: DGM-Kacheln-Layer sichtbar -> Popup mit Kachel-Infos anzeigen
+  if (kachelnVisible) {
+    let featureFound = false;
+
+    map.forEachFeatureAtPixel(evt.pixel, (feature) => {
+      featureFound = true;
+      const props = feature.getProperties();
+      const tifUrl = props.dgm1;
+      const bbox = feature.getGeometry().getExtent();
+
+      popup.style.left = evt.pixel[0] + 'px';
+      popup.style.top = evt.pixel[1] + 'px';
+      popup.innerHTML = `
+        <b>Kachel:</b> ${props.tile_id}<br>
+        <b>Datum:</b> ${props.Aktualitaet}<br>
+        <button id="loadDgmBtn">DGM laden</button>
+      `;
+      popup.style.display = 'block';
+
+      // Klick auf "DGM laden" lädt GeoTIFF
+      document.getElementById('loadDgmBtn').onclick = function () {
+        addDgmLayer(tifUrl, bbox, props.tile_id);
+        popup.style.display = 'none';
+      };
+    });
+
+    // Wenn keine Kachel getroffen wurde → Popup ausblenden
+    if (!featureFound) popup.style.display = 'none';
+
+    return; // fertig für diesen Fall
+  }
+
+  // --- FALL 2: DGM-Kacheln-Layer NICHT sichtbar -> Höhe aus aktivem DGM abfragen
+  let pixelValues = null;
+  try {
+    if (activeDgmRasterLayer && typeof activeDgmRasterLayer.getData === 'function') {
+      pixelValues = await activeDgmRasterLayer.getData(coordinate);
+    } else if (typeof GeoTIFFLayer !== 'undefined' && GeoTIFFLayer?.getData) {
+      pixelValues = await GeoTIFFLayer.getData(coordinate);
     }
-  }).catch(function (error) {
-    console.error('Fehler beim Abrufen der GeoTIFF-Daten:', error);
-  });
+  } catch (err) {
+    console.warn('Fehler beim Abrufen von DGM-Daten:', err);
+  }
+
+  if (pixelValues && pixelValues.length && pixelValues[0] != null) {
+    const height = pixelValues[0];
+    console.log(`Höhe an Klickposition: ${height.toFixed(2)} m`);
+
+    popup.style.left = evt.pixel[0] + 10 + 'px';
+    popup.style.top = evt.pixel[1] - 15 + 'px';
+    popup.innerHTML = `Höhe: <b>${height.toFixed(2)} m</b>`;
+    popup.style.display = 'block';
+  } else {
+    popup.style.left = evt.pixel[0] + 10 + 'px';
+    popup.style.top = evt.pixel[1] - 15 + 'px';
+    popup.innerHTML = `<i>Keine DGM-Daten geladen oder verfügbar</i>`;
+    popup.style.display = 'block';
+    setTimeout(() => { popup.style.display = 'none'; }, 2000);
+  }
 });
-// --- Funktion: GeoTIFF-Layer hinzufügen
+
+
 function addDgmLayer(url, bbox, id) {
-  const source = new GeoTIFF({
-    sources: [
-      {
-        url: url,
-        min: 10,
-        max: 30, // passe an deine Höhenwerte an
-        nodata: 0,
-      },
-    ],
+  const source = new GeoTIFFSource({
+    sources: [{ url }],
     projection: 'EPSG:25832',
     normalize: true,
-    sourceOptions: {
-      allowFullFile: true, // wichtig für lokale oder Einzel-TIFs
-    },
   });
 
   const dgmLayer = new WebGLTileLayer({
-    source: source,
+    source,
     title: `DGM1 Kachel ${id}`,
     name: `dgm1_${id}`,
     visible: true,
     opacity: 0.95,
-
-    style: (pixel) => {
-    const height = pixel.get('Kanal 1'); // Annahme: 'height' Eigenschaft ist verfügbar
-    let fillColor = 'gray';
+    style: (pixel) => 
+  { 
+    console.log('pixel:', pixel ); 
+    const height = pixel.get('Kanal 1'); 
+    let fillColor = 'gray'; 
     for (const range of heightColorMap) {
-      if (height <= range.max) {
-        fillColor = range.color;
-        break;
+       if (height <= range.max) { 
+        fillColor = range.color; 
+        break; 
       }
-    }
-    return new Style({
-      fill: new Fill({
-        color: fillColor
-      })
-    });
+     } return new Style({ 
+      fill: new Fill({ 
+        color: fillColor 
+      }) 
+    }); 
   },
-  
   });
 
- 
   map.addLayer(dgmLayer);
-  map.getView().fit(bbox, {size: map.getSize(), maxZoom: 15});
-  popup.style.display = 'none';
+
+  // 🟢 hier merken wir uns das aktuelle Layer
+  activeDgmRasterLayer = dgmLayer;
 }
 
