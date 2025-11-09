@@ -31,8 +31,8 @@ import { fromArrayBuffer } from 'geotiff';
 import colormap from 'colormap';
 
 
-
-
+let activeDgmRasterData = null; // globale Variable für aktuell geladenes GeoTIFF-DGM:
+let activeDgmRasterLayer = null; // wird in addDgmLayer gesetzt
 
 //projektion definieren und registrieren
 proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
@@ -250,8 +250,7 @@ popup.style.cssText = `
 `;
 document.body.appendChild(popup);
 
-// globale Variable für aktuell geladenes GeoTIFF-DGM:
-let activeDgmRasterLayer = null; // wird in addDgmLayer gesetzt
+
 
 map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
@@ -279,7 +278,7 @@ map.on('singleclick', async (evt) => {
       featureFound = true;
       const props = feature.getProperties();
       const tifUrl = props.dgm1;
-      console.log(props.dgm1)
+      console.log(props)
       const bbox = feature.getGeometry().getExtent();
 
       popup.style.left = evt.pixel[0] + 'px';
