@@ -31,7 +31,7 @@ import { fromArrayBuffer } from 'geotiff';
 import colormap from 'colormap';
 
 
-let activeDgmRasterData = null; // globale Variable für aktuell geladenes GeoTIFF-DGM:
+let activeDgmRasterData = null; // wird in addDgmLayer gesetzt
 let activeDgmRasterLayer = null; // wird in addDgmLayer gesetzt
 
 //projektion definieren und registrieren
@@ -120,8 +120,8 @@ async function addDgmLayer(url, bbox, id1) {
 
   const GeoTIFFLayer1 = new WebGLTileLayer({
     source: TiffSource1,
-    title: `${id1} DGM1 Kachel`,
-    name: `${id1} DGM1 Kachel`,
+    title: `${id1} DGM_GeoTiff`,
+    name: `${id1} DGM_GeoTiff`,
     visible: true,
     style: createDgmGeoTiffStyle(min, max), // dynamische Graustufen
   });
@@ -135,7 +135,7 @@ async function addDgmLayer(url, bbox, id1) {
   // Rasterdaten und Dimensionen global speichern
   activeDgmRasterData = { raster, width, height, bbox, min, max };
 
-  console.log(`✅ DGM-Layer hinzugefügt: ${id1} (min=${min}, max=${max})`);
+ // console.log(`✅ DGM-Layer hinzugefügt: ${id1} (min=${min}, max=${max})`);
 }
 
 
@@ -236,7 +236,6 @@ map.addLayer(BaseGroup);
 map.addLayer(gew_layer_layer);
 map.addLayer(dgmKachelLayer);
 
-
 // --- Popup für Info / Auswahl ---
 const popup = document.createElement('div');
 popup.id = 'popup';
@@ -250,12 +249,10 @@ popup.style.cssText = `
 `;
 document.body.appendChild(popup);
 
-
-
 map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
   const kachelnVisible = dgmKachelLayer && dgmKachelLayer.getVisible();
-  // Popup vorbereiten (falls noch nicht angelegt)
+
   const popup = document.getElementById('popup') || (() => {
     const div = document.createElement('div');
     div.id = 'popup';
@@ -270,15 +267,15 @@ map.on('singleclick', async (evt) => {
     document.body.appendChild(div);
     return div;
   })();
- 
-  // --- FALL 1: DGM-Kacheln-Layer sichtbar -> Popup mit Kachel-Infos anzeigen
+
+  // 🟢 FALL 1: DGM-Kacheln-Layer sichtbar → Auswahl einer Kachel
   if (kachelnVisible) {
     let featureFound = false;
+
     map.forEachFeatureAtPixel(evt.pixel, (feature) => {
       featureFound = true;
       const props = feature.getProperties();
       const tifUrl = props.dgm1;
-      console.log(props)
       const bbox = feature.getGeometry().getExtent();
 
       popup.style.left = evt.pixel[0] + 'px';
@@ -290,41 +287,146 @@ map.on('singleclick', async (evt) => {
       `;
       popup.style.display = 'block';
 
-      // Klick auf "DGM laden" lädt GeoTIFF
       document.getElementById('loadDgmBtn').onclick = function () {
         addDgmLayer(tifUrl, bbox, props.tile_id);
         popup.style.display = 'none';
       };
     });
-    // Wenn keine Kachel getroffen wurde → Popup ausblenden
+
     if (!featureFound) popup.style.display = 'none';
-    return; // fertig für diesen Fall
+    return;
   }
+
+  // 🟢 FALL 2: Kacheln-Layer unsichtbar → Höhe aus allen DGM-Layern ermitteln
+  const dgmLayers = map.getLayers().getArray().filter((layer) => {
+    const name = layer.get('name');
+    return name && name.endsWith('DGM_GeoTiff') && layer.getVisible();
+  });
   
-  // --- FALL 2: DGM-Kacheln-Layer NICHT sichtbar -> Höhe aus aktivem DGM abfragen
-  let pixelValues = null;
-  try {
-    if (activeDgmRasterLayer && typeof activeDgmRasterLayer.getData === 'function') {
-      pixelValues = await activeDgmRasterLayer.getData(coordinate);
-    } else if (typeof GeoTIFFLayer !== 'undefined' && GeoTIFFLayer?.getData) {
-      pixelValues = await GeoTIFFLayer.getData(coordinate);
-    }
-  } catch (err) {
-    console.warn('Fehler beim Abrufen von DGM-Daten:', err);
+  if (dgmLayers.length === 0) {
+    popup.style.display = 'none';
+    console.warn('Keine sichtbaren DGM-Layer gefunden.');
+    return;
   }
-    const height = HoeheErmitteln(evt);
-    popup.style.left = evt.pixel[0] + 10 + 'px';
-    popup.style.top = evt.pixel[1] - 15 + 'px';
+  // Versuche der Reihe nach, einen Höhenwert zu bekommen
+  let height = null;
+  for (const layer of dgmLayers) {
+    // extra debug: welche Methoden hat der Layer?
+    console.log('Prüfe Layer', layer.get('name'), {
+      hasGetData: typeof layer.getData === 'function',
+      sourceHasGetView: layer.getSource ? typeof layer.getSource().getView === 'function' : false
+    });
+
+    const val = await readHeightFromGeoTIFFLayer(layer, evt.pixel);
+
+    if (val !== null && val !== undefined && !Number.isNaN(val)) {
+      height = val;
+      console.log(`Höhe von Layer "${layer.get('name')}": ${height.toFixed(2)} m`);
+      break;
+    }
+  }
+
+  // Popup-Ausgabe
+  popup.style.left = evt.pixel[0] + 10 + 'px';
+  popup.style.top = evt.pixel[1] - 15 + 'px';
+  if (height !== null) {
     popup.innerHTML = `Höhe: <b>${height.toFixed(2)} m</b>`;
-    popup.style.display = 'block';
-
-
+  } else {
+    popup.innerHTML = `<i>Keine DGM-Daten an dieser Position verfügbar</i>`;
+  }
+  popup.style.display = 'block';
 });
 
 
- function HoeheErmitteln (evt) {
-  const dataObject = activeDgmRasterLayer.getData(evt.pixel);
-  const elevationValue = dataObject["0"]; 
-  return elevationValue;
-};
 
+
+
+/**
+ * Liefert einen Höhenwert (erste Band) an Karte-Koordinate zurück oder null.
+ * Versucht mehrere Methoden (layer.getData, source.getView/readRasters).
+ * @param {ol/layer/Layer} layer 
+ * @param {Array<number>} coordinate map coordinate (vermutlich EPSG:3857)
+ * @returns {Number|null}
+ */
+async function readHeightFromGeoTIFFLayer(layer, coordinate) {
+  if (!layer) return null;
+
+  // 1) Wenn die einfache API verfügbar ist: layer.getData(coordinate)
+  if (typeof layer.getData === 'function') {
+    try {
+      const val = await layer.getData(coordinate);
+      if (val && val.length && val[0] !== undefined && val[0] !== null && !Number.isNaN(val[0])) {
+        return val[0];
+      }
+    } catch (err) {
+      console.warn('layer.getData() fehlgeschlagen für', layer.get('name'), err);
+      // fallthrough zu nächster Methode
+    }
+  }
+
+  // 2) Fallback: direkt mit der GeoTIFF-Source arbeiten (robuster)
+  const source = layer.getSource && layer.getSource();
+  if (!source) return null;
+
+  if (typeof source.getView !== 'function') {
+    console.warn('Source hat keine getView()-Methode — cannot read rasters directly', layer.get('name'));
+    return null;
+  }
+
+  try {
+    // wir wollen in die native Projektion des Geotiffs transformieren (hier EPSG:25832)
+    // Karte proj ist z.B. EPSG:3857
+    const mapView = map.getView();
+    const mapProj = mapView.getProjection().getCode();
+    const tifProj = source.projection || 'EPSG:25832'; // GeoTIFF-Quelle hast du in addDgmLayer mit EPSG:25832 gesetzt
+
+    // Transformiere die Klick-Koordinate in die GeoTIFF-Projektion
+    const coordInTifProj = transform(coordinate, mapProj, tifProj);
+
+    // extent: benutze layer.bbox (falls gesetzt beim Laden), sonst viewport-extent in tifProj
+    const extent = layer.bbox || transformExtent(mapView.calculateExtent(map.getSize()), mapProj, tifProj);
+
+    // resolution: aktuell verwendete map resolution -> approximativ
+    const resolution = mapView.getResolution();
+
+    // Hol dir eine "View" (OpenLayers GeoTIFF source API)
+    const dataView = await source.getView({
+      extent: extent,
+      resolution: resolution,
+      projection: tifProj,
+    });
+
+    if (!dataView) {
+      console.warn('getView() lieferte kein dataView für', layer.get('name'));
+      return null;
+    }
+
+    // Lese nur das erste Band (samples: [0]) — speichere als 1D-Array
+    const rasters = await dataView.readRasters({ samples: [0] });
+    const band = rasters[0]; // typed array
+    const width = dataView.width;
+    const height = dataView.height;
+    const dvExtent = dataView.extent; // [minX, minY, maxX, maxY] in tifProj
+
+    // berechne Pixelkoordinaten innerhalb des dataView
+    const xRatio = (coordInTifProj[0] - dvExtent[0]) / (dvExtent[2] - dvExtent[0]);
+    const yRatio = (dvExtent[3] - coordInTifProj[1]) / (dvExtent[3] - dvExtent[1]); // y von top
+
+    const px = Math.floor(xRatio * width);
+    const py = Math.floor(yRatio * height);
+
+    if (px < 0 || px >= width || py < 0 || py >= height) {
+      // Klick außerhalb des gerenderten dataView
+      return null;
+    }
+
+    const index = py * width + px;
+    const value = band[index];
+
+    if (value === undefined || value === null || Number.isNaN(value)) return null;
+    return value;
+  } catch (err) {
+    console.warn('Fehler beim Lesen der GeoTIFF-Rasterdaten von', layer.get('name'), err);
+    return null;
+  }
+}
