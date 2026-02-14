@@ -36,33 +36,36 @@ const attribution = new Attribution({
 });
 
 
-
 function createDgmGeoTiffStyle(minHeight, maxHeight) {
   const NO_DATA = -9999;
-  
-  // Sicherheitscheck: Falls min/max identisch sind (verhindert Division durch Null)
-  const safeMax = maxHeight <= minHeight ? minHeight + 1 : maxHeight;
+  const range = (maxHeight - minHeight) || 1;
+  const step = (p) => minHeight + range * p;
 
   return {
     color: [
       'case',
-      // Falls NoData oder außerhalb der Range -> Transparent
-      ['any', ['==', ['band', 1], NO_DATA], ['<', ['band', 1], minHeight]],
-      [0, 0, 0, 0],
+      // 1. Transparenz-Check: NoData ODER Werte unter/gleich 0 (oft Wasser/Leerraum)
+      ['any', 
+        ['==', ['band', 1], NO_DATA], 
+        ['<=', ['band', 1], 0], // Filtert meist den "blauen Rahmen" weg
+        ['<', ['band', 1], minHeight]
+      ],
+      [0, 0, 0, 0], // Vollständig transparent
+
+      // 2. Die eigentliche Farbskala
       [
         'interpolate',
         ['linear'],
         ['band', 1],
-        minHeight, [0, 0, 255, 1],             // Blau
-        minHeight + (safeMax - minHeight) * 0.2, [0, 255, 0, 1],   // Grün
-        minHeight + (safeMax - minHeight) * 0.5, [255, 255, 0, 1], // Gelb
-        minHeight + (safeMax - minHeight) * 0.8, [139, 69, 19, 1],  // Braun
-        safeMax, [255, 255, 255, 1]            // Weiß
+        minHeight, [0, 0, 255, 1],         // Blau (Tiefster Punkt Gelände)
+        step(0.25), [0, 255, 0, 1],        // Grün
+        step(0.5),  [255, 255, 0, 1],      // Gelb
+        step(0.75), [165, 42, 42, 1],      // Braun
+        maxHeight,  [255, 255, 255, 1]     // Weiß (Höchster Punkt)
       ]
     ]
   };
 }
-
 
 
 async function getMinMaxFromMetadata(url) {
@@ -70,9 +73,8 @@ async function getMinMaxFromMetadata(url) {
     const response = await fetch(url, { method: 'HEAD' }); // Vorab-Check
     if (!response.ok) throw new Error('Datei nicht erreichbar');
 
-    const tiff = await fromArrayBuffer(await (await fetch(url)).arrayBuffer());
-    const image = await tiff.getImage(); // Evtl. getImage(1) für schnellere Statistik nutzen
-    const meta = image.getGDALMetadata();
+    const tiff = await fromUrl(url); // Nutzt HTTP Range Requests (lädt nur Header!)
+    const image = await tiff.getImage();const meta = image.getGDALMetadata();
 
     if (meta?.STATISTICS_MINIMUM && meta?.STATISTICS_MAXIMUM) {
       return { 
