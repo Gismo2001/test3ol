@@ -9,6 +9,7 @@ export default {
     sourcemap: true,
   },
   server: {
+    
     proxy: {
       '/lgln-stac': {
         target: 'https://dgm.stac.lgln.niedersachsen.de',
@@ -19,3 +20,4 @@ export default {
     },
   },
 }
+

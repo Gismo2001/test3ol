@@ -23,7 +23,21 @@ import GeoTIFFSource from 'ol/source/GeoTIFF.js';
 import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
 import { fromArrayBuffer } from 'geotiff';
 
+import 'ol/ol.css';
+import 'ol-ext/dist/ol-ext.css';
+
+// Ganz oben in der Datei, außerhalb aller Funktionen:
 let activeDgmRasterLayer = null;
+let activeDgmRasterData = { 
+  raster: null, 
+  width: 0, 
+  height: 0, 
+  bbox: null, 
+  min: 0, 
+  max: 100 
+};
+
+
 
 //projektion definieren und registrieren
 proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
