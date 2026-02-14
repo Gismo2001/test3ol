@@ -44,24 +44,19 @@ function createDgmGeoTiffStyle(minHeight, maxHeight) {
   return {
     color: [
       'case',
-      // 1. Transparenz-Check: NoData ODER Werte unter/gleich 0 (oft Wasser/Leerraum)
-      ['any', 
-        ['==', ['band', 1], NO_DATA], 
-        ['<=', ['band', 1], 0], // Filtert meist den "blauen Rahmen" weg
-        ['<', ['band', 1], minHeight]
-      ],
-      [0, 0, 0, 0], // Vollständig transparent
-
-      // 2. Die eigentliche Farbskala
+      // WICHTIG: Prüfe zusätzlich auf <= 0, um den blauen Rahmen zu vermeiden
+      ['any', ['==', ['band', 1], NO_DATA], ['<=', ['band', 1], 0], ['<', ['band', 1], minHeight]],
+      [0, 0, 0, 0],
+      
       [
         'interpolate',
         ['linear'],
         ['band', 1],
-        minHeight, [0, 0, 255, 1],         // Blau (Tiefster Punkt Gelände)
-        step(0.25), [0, 255, 0, 1],        // Grün
-        step(0.5),  [255, 255, 0, 1],      // Gelb
-        step(0.75), [165, 42, 42, 1],      // Braun
-        maxHeight,  [255, 255, 255, 1]     // Weiß (Höchster Punkt)
+        minHeight, [30, 60, 150, 1],      // Dunkelblau (Tief)
+        step(0.15), [60, 180, 75, 1],     // Saftiges Grün (Flachland)
+        step(0.4),  [220, 220, 100, 1],   // Sandiges Gelb (Hügel)
+        step(0.7),  [120, 70, 30, 1],     // Dunkelbraun (Hochland)
+        maxHeight,  [255, 255, 255, 1]    // Weiß (Gipfel)
       ]
     ]
   };
@@ -73,8 +68,9 @@ async function getMinMaxFromMetadata(url) {
     const response = await fetch(url, { method: 'HEAD' }); // Vorab-Check
     if (!response.ok) throw new Error('Datei nicht erreichbar');
 
-    const tiff = await fromUrl(url); // Nutzt HTTP Range Requests (lädt nur Header!)
-    const image = await tiff.getImage();const meta = image.getGDALMetadata();
+    const tiff = await fromArrayBuffer(await (await fetch(url)).arrayBuffer());
+    const image = await tiff.getImage(); // Evtl. getImage(1) für schnellere Statistik nutzen
+    const meta = image.getGDALMetadata();
 
     if (meta?.STATISTICS_MINIMUM && meta?.STATISTICS_MAXIMUM) {
       return { 
