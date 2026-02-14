@@ -1,21 +1,16 @@
 import Map from 'ol/Map.js';
 import View from 'ol/View.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
+import { defaults as defaultInteractions } from 'ol/interaction.js';
 
 import * as LoadingStrategy from 'ol/loadingstrategy';
 import * as proj from 'ol/proj';
 import {OSM, Vector as VectorSource} from 'ol/source.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
-import { fromLonLat } from 'ol/proj.js';
 import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
 import { DragRotateAndZoom } from 'ol/interaction.js';
 
-import { defaults as defaultInteractions } from 'ol/interaction.js';
-import { singleClick } from 'ol/events/condition';
-
-import MousePosition from 'ol/control/MousePosition.js';
 import { transform } from 'ol/proj';
-import {createStringXY} from 'ol/coordinate.js';
 import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
 
@@ -28,11 +23,7 @@ import GeoTIFFSource from 'ol/source/GeoTIFF.js';
 import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
 import { fromArrayBuffer } from 'geotiff';
 
-import colormap from 'colormap';
-
-
-let activeDgmRasterData = null; // wird in addDgmLayer gesetzt
-let activeDgmRasterLayer = null; // wird in addDgmLayer gesetzt
+let activeDgmRasterLayer = null;
 
 //projektion definieren und registrieren
 proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
@@ -43,67 +34,70 @@ const attribution = new Attribution({
   collapsible: true,
   html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
 });
+
+
+
 function createDgmGeoTiffStyle(minHeight, maxHeight) {
-  const KNOWN_NODATA = -9999;
+  const NO_DATA = -9999;
+  
+  // Sicherheitscheck: Falls min/max identisch sind (verhindert Division durch Null)
+  const safeMax = maxHeight <= minHeight ? minHeight + 1 : maxHeight;
 
   return {
     color: [
       'case',
-      ['==', ['band', 1], KNOWN_NODATA],
-      [0, 0, 0, 0],
-      ['<', ['band', 1], minHeight],
+      // Falls NoData oder außerhalb der Range -> Transparent
+      ['any', ['==', ['band', 1], NO_DATA], ['<', ['band', 1], minHeight]],
       [0, 0, 0, 0],
       [
         'interpolate',
         ['linear'],
         ['band', 1],
-        minHeight, [0, 0, 0, 1],
-        (minHeight + maxHeight) / 2, [128, 128, 128, 1],
-        maxHeight, [255, 255, 255, 1],
+        minHeight, [0, 0, 255, 1],             // Blau
+        minHeight + (safeMax - minHeight) * 0.2, [0, 255, 0, 1],   // Grün
+        minHeight + (safeMax - minHeight) * 0.5, [255, 255, 0, 1], // Gelb
+        minHeight + (safeMax - minHeight) * 0.8, [139, 69, 19, 1],  // Braun
+        safeMax, [255, 255, 255, 1]            // Weiß
       ]
     ]
   };
 }
+
+
+
 async function getMinMaxFromMetadata(url) {
-  if (!url || typeof url !== 'string' || !url.endsWith('.tif')) {
-    console.error('Ungültige TIFF-URL:', url);
-    return { min: 0, max: 100 };
-  }
+  try {
+    const response = await fetch(url, { method: 'HEAD' }); // Vorab-Check
+    if (!response.ok) throw new Error('Datei nicht erreichbar');
 
-  const response = await fetch(url);
-  const arrayBuffer = await response.arrayBuffer();
-  const tiff = await fromArrayBuffer(arrayBuffer);
-  const image = await tiff.getImage();
-  const meta = image.getGDALMetadata();
+    const tiff = await fromArrayBuffer(await (await fetch(url)).arrayBuffer());
+    const image = await tiff.getImage(); // Evtl. getImage(1) für schnellere Statistik nutzen
+    const meta = image.getGDALMetadata();
 
-  let min, max;
-  
-  if (meta?.STATISTICS_MINIMUM && meta?.STATISTICS_MAXIMUM) {
-    // 🟢 Fall 1: GDAL hat Statistik → direkt übernehmen
-    min = parseFloat(meta.STATISTICS_MINIMUM);
-    max = parseFloat(meta.STATISTICS_MAXIMUM);
-    console.log(`GDAL Statistik gefunden: min=${min}, max=${max}`);
-  } else {
-    const raster = await image.readRasters({ samples: [0] });
+    if (meta?.STATISTICS_MINIMUM && meta?.STATISTICS_MAXIMUM) {
+      return { 
+        min: parseFloat(meta.STATISTICS_MINIMUM), 
+        max: parseFloat(meta.STATISTICS_MAXIMUM) 
+      };
+    }
+
+    // Fallback: Nur einen Ausschnitt oder Overview lesen statt das ganze File
+    const raster = await image.readRasters({ samples: [0], interleave: false });
     const band = raster[0];
-    min = Infinity;
-    max = -Infinity;
-    for (let i = 0; i < band.length; i++) {
+    let min = Infinity, max = -Infinity;
+    
+    for (let i = 0; i < band.length; i += 10) { // Performance: Nur jeden 10. Pixel prüfen
       const v = band[i];
       if (v !== -9999 && !isNaN(v)) {
         if (v < min) min = v;
         if (v > max) max = v;
       }
     }
-
-    //console.log('Beispielwerte (erste 20 Pixel):', Array.from(band.slice(0, 20)));
-    //console.log(`Berechnete Statistik: min=${min}, max=${max}`);
-    //console.log('SampleFormat:', image.getSampleFormat());
-    //console.log('BitsPerSample:', image.getBitsPerSample());
-
+    return { min, max };
+  } catch (err) {
+    console.error('Statistik-Fehler:', err);
+    return { min: 0, max: 100 };
   }
-
-  return { min, max };
 }
 
 async function addDgmLayer(url, bbox, id1) {
@@ -123,6 +117,7 @@ async function addDgmLayer(url, bbox, id1) {
     title: `${id1} DGM_GeoTiff`,
     name: `${id1} DGM_GeoTiff`,
     visible: true,
+    willReadFrequently : true,
     style: createDgmGeoTiffStyle(min, max), // dynamische Graustufen
   });
 
@@ -135,8 +130,10 @@ async function addDgmLayer(url, bbox, id1) {
   // Rasterdaten und Dimensionen global speichern
   activeDgmRasterData = { raster, width, height, bbox, min, max };
 
- // console.log(`✅ DGM-Layer hinzugefügt: ${id1} (min=${min}, max=${max})`);
+
 }
+
+
 
 
 const dgmKachelSource = new VectorSource({
@@ -338,9 +335,6 @@ map.on('singleclick', async (evt) => {
 });
 
 
-
-
-
 /**
  * Liefert einen Höhenwert (erste Band) an Karte-Koordinate zurück oder null.
  * Versucht mehrere Methoden (layer.getData, source.getView/readRasters).
@@ -349,6 +343,7 @@ map.on('singleclick', async (evt) => {
  * @returns {Number|null}
  */
 async function readHeightFromGeoTIFFLayer(layer, coordinate) {
+  console.log('aufgerufen');
   if (!layer) return null;
 
   // 1) Wenn die einfache API verfügbar ist: layer.getData(coordinate)
@@ -430,3 +425,29 @@ async function readHeightFromGeoTIFFLayer(layer, coordinate) {
     return null;
   }
 }
+
+
+const heightInfo = document.getElementById('height-info');
+const heightValue = document.getElementById('height-value');
+
+map.on('pointermove', (evt) => {
+  if (!activeDgmRasterLayer) {
+    heightInfo.style.display = 'none';
+    return;
+  }
+
+  // Daten an der aktuellen Pixelposition abfragen
+  const data = activeDgmRasterLayer.getData(evt.pixel);
+
+  if (data && data[0] !== -9999) { // Prüfen auf gültige Daten (kein NoData)
+    const elevation = data[0].toFixed(2); // Auf 2 Nachkommastellen runden
+    heightValue.innerText = elevation;
+    heightInfo.style.display = 'block';
+    
+    // Optional: Anzeige folgt der Maus
+    // heightInfo.style.left = (evt.pixel[0] + 15) + 'px';
+    // heightInfo.style.top = (evt.pixel[1] + 15) + 'px';
+  } else {
+    heightInfo.style.display = 'none';
+  }
+});
