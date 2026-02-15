@@ -171,7 +171,7 @@ const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
   zoom: 9
 });
-const map = new Map({
+const map = new Mapap({
   target: "map",
   view: mapView,
    controls: defaultControls().extend([
