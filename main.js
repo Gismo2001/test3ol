@@ -76,7 +76,6 @@ function createDgmGeoTiffStyle(minHeight, maxHeight) {
   };
 }
 
-
 async function getMinMaxFromMetadata(url) {
   try {
     const response = await fetch(url, { method: 'HEAD' }); // Vorab-Check
@@ -121,7 +120,7 @@ async function addDgmLayer(url, bbox, id1) {
     sources: [{ url }], 
     projection: 'EPSG:25832', 
     normalize: false, 
-    sourceOptions: { allowFullFile: true }, 
+    sourceOptions: { allowFullFile: false }, 
   });
 
   const GeoTIFFLayer1 = new WebGLTileLayer({
@@ -129,7 +128,7 @@ async function addDgmLayer(url, bbox, id1) {
     title: `${id1} DGM_GeoTiff`,
     name: `${id1} DGM_GeoTiff`,
     visible: true,
-    willReadFrequently : true,
+    willReadFrequently : false,
     style: createDgmGeoTiffStyle(min, max), // dynamische Graustufen
   });
 
@@ -171,7 +170,7 @@ const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
   zoom: 9
 });
-const map = new Mapap({
+const map = new Map({
   target: "map",
   view: mapView,
    controls: defaultControls().extend([
@@ -437,29 +436,32 @@ async function readHeightFromGeoTIFFLayer(layer, coordinate) {
     return null;
   }
 }
-
-
-const heightInfo = document.getElementById('height-info');
+const heightStatus = document.getElementById('height-status');
 const heightValue = document.getElementById('height-value');
 
+let lastCall = 0;
+const throttleDelay = 60; // 50–80ms ideal
+
 map.on('pointermove', (evt) => {
-  if (!activeDgmRasterLayer) {
-    heightInfo.style.display = 'none';
+
+  if (evt.dragging) return;
+
+  const now = Date.now();
+  if (now - lastCall < throttleDelay) return;
+  lastCall = now;
+
+  // Nur wenn ein DGM aktiv ist
+  if (!activeDgmRasterLayer || !activeDgmRasterLayer.getVisible()) {
+    heightStatus.style.display = 'none';
     return;
   }
 
-  // Daten an der aktuellen Pixelposition abfragen
   const data = activeDgmRasterLayer.getData(evt.pixel);
 
-  if (data && data[0] !== -9999) { // Prüfen auf gültige Daten (kein NoData)
-    const elevation = data[0].toFixed(2); // Auf 2 Nachkommastellen runden
-    heightValue.innerText = elevation;
-    heightInfo.style.display = 'block';
-    
-    // Optional: Anzeige folgt der Maus
-    // heightInfo.style.left = (evt.pixel[0] + 15) + 'px';
-    // heightInfo.style.top = (evt.pixel[1] + 15) + 'px';
+  if (data && data[0] !== -9999 && !Number.isNaN(data[0])) {
+    heightValue.innerText = data[0].toFixed(2);
+    heightStatus.style.display = 'block';
   } else {
-    heightInfo.style.display = 'none';
+    heightStatus.style.display = 'none';
   }
 });
