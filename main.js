@@ -49,8 +49,8 @@ const attribution = new Attribution({
   html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
 });
 
-
-function createDgmGeoTiffStyle(minHeight, maxHeight) {
+/* 
+ function createDgmGeoTiffStyle(minHeight, maxHeight) {
   const NO_DATA = -9999;
   const range = (maxHeight - minHeight) || 1;
   const step = (p) => minHeight + range * p;
@@ -74,9 +74,9 @@ function createDgmGeoTiffStyle(minHeight, maxHeight) {
       ]
     ]
   };
-}
+} 
 
-async function getMinMaxFromMetadata(url) {
+ async function getMinMaxFromMetadata(url) {
   try {
     const response = await fetch(url, { method: 'HEAD' }); // Vorab-Check
     if (!response.ok) throw new Error('Datei nicht erreichbar');
@@ -110,10 +110,29 @@ async function getMinMaxFromMetadata(url) {
     return { min: 0, max: 100 };
   }
 }
-
-async function addDgmLayer(url, bbox, id1) {
+ */
+//async function addDgmLayer(url, bbox, id1) {
   // min/max aus GDAL-Metadaten ermitteln
-  const { min, max, raster, width, height } = await getMinMaxFromMetadata(url);
+  //const { min, max, raster, width, height } = await getMinMaxFromMetadata(url);
+
+  /* // GeoTIFF Layer
+  const TiffSource1 = new GeoTIFFSource({ 
+    sources: [{ url }], 
+    projection: 'EPSG:25832', 
+    normalize: false, 
+    sourceOptions: { allowFullFile: false }, 
+  }); */
+
+/* 
+  const GeoTIFFLayer1 = new WebGLTileLayer({
+    source: TiffSource1,
+    title: `${id1} DGM_GeoTiff`,
+    name: `${id1} DGM_GeoTiff`,
+    visible: true,
+    willReadFrequently : false,
+    style: createDgmGeoTiffStyle(min, max), // dynamische Graustufen
+  }); */
+  let url = 'https://dgm.s3.eu-de.cloud-object-storage.appdomain.cloud/323845840/2017-03-04/dgm1_32_384_5840_1_ni_2017.tif';
 
   // GeoTIFF Layer
   const TiffSource1 = new GeoTIFFSource({ 
@@ -123,30 +142,31 @@ async function addDgmLayer(url, bbox, id1) {
     sourceOptions: { allowFullFile: false }, 
   });
 
+
   const GeoTIFFLayer1 = new WebGLTileLayer({
     source: TiffSource1,
-    title: `${id1} DGM_GeoTiff`,
-    name: `${id1} DGM_GeoTiff`,
+    title: `DGM_GeoTiff`,
+    name: `DGM_GeoTiff`,
     visible: true,
     willReadFrequently : false,
-    style: createDgmGeoTiffStyle(min, max), // dynamische Graustufen
+    
   });
-
   // Extent der Kachel für Klickabfrage speichern
-  GeoTIFFLayer1.bbox = bbox;
+  //GeoTIFFLayer1.bbox = bbox;
 
-  map.addLayer(GeoTIFFLayer1);
-  activeDgmRasterLayer = GeoTIFFLayer1;
+  //map.addLayer(GeoTIFFLayer1);
+  //console.log(url);
+  //activeDgmRasterLayer = GeoTIFFLayer1;
 
   // Rasterdaten und Dimensionen global speichern
-  activeDgmRasterData = { raster, width, height, bbox, min, max };
+  //activeDgmRasterData = { raster, width, height, bbox, min, max };
 
 
-}
+//  }
 
 
 
-
+/* 
 const dgmKachelSource = new VectorSource({
   url: '/data/dgm_kacheln.geojson',  // relativer Pfad im Projekt
   format: new GeoJSON(),
@@ -164,7 +184,7 @@ const dgmKachelLayer = new VectorLayer({
     }),
   }),
 });
-
+ */
 
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
@@ -240,10 +260,12 @@ const BaseGroup = new LayerGroup({
   visible: true,
   layers: [ osmTileGr, osmTileCr]
 });
+
 map.addLayer(BaseGroup);
 map.addLayer(gew_layer_layer);
-map.addLayer(dgmKachelLayer);
-
+map.addLayer(GeoTIFFLayer1);
+//map.addLayer(dgmKachelLayer);
+/* 
 // --- Popup für Info / Auswahl ---
 const popup = document.createElement('div');
 popup.id = 'popup';
@@ -255,9 +277,9 @@ popup.style.cssText = `
   border: 1px solid #ccc;
   font-size: 13px;
 `;
-document.body.appendChild(popup);
+document.body.appendChild(popup); */
 
-map.on('singleclick', async (evt) => {
+/* map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
   const kachelnVisible = dgmKachelLayer && dgmKachelLayer.getVisible();
 
@@ -344,7 +366,7 @@ map.on('singleclick', async (evt) => {
   }
   popup.style.display = 'block';
 });
-
+ */
 
 /**
  * Liefert einen Höhenwert (erste Band) an Karte-Koordinate zurück oder null.
@@ -353,7 +375,7 @@ map.on('singleclick', async (evt) => {
  * @param {Array<number>} coordinate map coordinate (vermutlich EPSG:3857)
  * @returns {Number|null}
  */
-async function readHeightFromGeoTIFFLayer(layer, coordinate) {
+/* async function readHeightFromGeoTIFFLayer(layer, coordinate) {
   console.log('aufgerufen');
   if (!layer) return null;
 
@@ -440,9 +462,9 @@ const heightStatus = document.getElementById('height-status');
 const heightValue = document.getElementById('height-value');
 
 let lastCall = 0;
-const throttleDelay = 60; // 50–80ms ideal
+const throttleDelay = 60; // 50–80ms ideal */
 
-map.on('pointermove', (evt) => {
+/* map.on('pointermove', (evt) => {
 
   if (evt.dragging) return;
 
@@ -465,3 +487,4 @@ map.on('pointermove', (evt) => {
     heightStatus.style.display = 'none';
   }
 });
+ */
