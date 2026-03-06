@@ -1,4 +1,9 @@
 {
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
+{
   "name": "test3ol",
   "version": "1.0.0",
   "engines": {
@@ -8,6 +13,7 @@
     "start": "vite",
     "build": "vite build",
     "serve": "vite preview"
+    
   },
   "devDependencies": {
     "vite": "^7.3.1"
