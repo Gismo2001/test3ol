@@ -20,25 +20,23 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script> -->
     
     <script src="myFunc.js"></script> 
-  <script type="module" crossorigin src="/assets/index-C2_uHdrq.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-VqvRVivu.css">
+  <script type="module" crossorigin src="/assets/index-DfIMQe4v.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D-TpfECi.css">
 </head>
 <body>
-  <button id="print-button" style=" position: absolute; top: 10px; right: 10px; z-index: 1020;">
-    Drucken
-  </button>
+  
   <div id="map" class="map">
     <div id="modalContainer"></div>
     <div id="custom-controls" class="custom-controls"> </div>
-    <div id="popup" class="ol-popup">
-        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-        <div id="popup-content"></div>
     
-    </div> 
   </div> 
- <div id="elevation-info" style="position: absolute; bottom: 10px; left: 10px; background: white; padding: 5px; border-radius: 5px; z-index: 100;">
-        Klicken Sie auf die Karte für Höheninformationen.
+
+  <div id="height-status" class="height-status">
+     Höhe: <span id="height-value">–</span> m
   </div>
-  
+  <div id="height-info" style="position: absolute; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; pointer-events: none; display: none; z-index: 1000;">
+  Höhe: <span id="height-value">-</span> m
+  </div>
+
 </body>
 </html>
