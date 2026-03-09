@@ -22,7 +22,6 @@ import {Fill, Stroke, Style} from 'ol/style.js';
 import GeoTIFFSource from 'ol/source/GeoTIFF.js';
 import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
 import { fromArrayBuffer } from 'geotiff';
-import { fromUrl } from 'geotiff';
 
 import 'ol/ol.css';
 import 'ol-ext/dist/ol-ext.css';
@@ -79,9 +78,11 @@ function createDgmGeoTiffStyle(minHeight, maxHeight) {
 
 async function getMinMaxFromMetadata(url) {
   try {
-    // geotiff.js fromUrl ist viel speicherschonender für Mobile!
-    const tiff = await fromUrl(url); 
-    const image = await tiff.getImage();
+    const response = await fetch(url, { method: 'HEAD' }); // Vorab-Check
+    if (!response.ok) throw new Error('Datei nicht erreichbar');
+
+    const tiff = await fromArrayBuffer(await (await fetch(url)).arrayBuffer());
+    const image = await tiff.getImage(); // Evtl. getImage(1) für schnellere Statistik nutzen
     const meta = image.getGDALMetadata();
 
     if (meta?.STATISTICS_MINIMUM && meta?.STATISTICS_MAXIMUM) {
@@ -90,40 +91,61 @@ async function getMinMaxFromMetadata(url) {
         max: parseFloat(meta.STATISTICS_MAXIMUM) 
       };
     }
+
+    // Fallback: Nur einen Ausschnitt oder Overview lesen statt das ganze File
+    const raster = await image.readRasters({ samples: [0], interleave: false });
+    const band = raster[0];
+    let min = Infinity, max = -Infinity;
     
-    // Falls keine Metadaten da sind: Ein Default-Range ist auf Mobile sicherer 
-    // als das ganze Raster zu loopen (Speichergefahr!)
-    return { min: 0, max: 250 }; 
+    for (let i = 0; i < band.length; i += 10) { // Performance: Nur jeden 10. Pixel prüfen
+      const v = band[i];
+      if (v !== -9999 && !isNaN(v)) {
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+    }
+    return { min, max };
   } catch (err) {
     console.error('Statistik-Fehler:', err);
     return { min: 0, max: 100 };
   }
 }
 
-
 async function addDgmLayer(url, bbox, id1) {
-  const { min, max } = await getMinMaxFromMetadata(url);
+  // min/max aus GDAL-Metadaten ermitteln
+  const { min, max, raster, width, height } = await getMinMaxFromMetadata(url);
 
+  // GeoTIFF Layer
   const TiffSource1 = new GeoTIFFSource({ 
-    sources: [{ 
-      url: url, 
-      crossOrigin: 'anonymous' 
-    }],
-    // Nutze 25832 wenn deine Koordinaten 32.xxx.xxx sind!
+    sources: [{ url, crossOrigin: 'anonymous'   }], 
     projection: 'EPSG:25832', 
     interpolate: true,
-    normalize: false
+    normalize: false, 
+    sourceOptions: { allowFullFile: true }, 
   });
 
   const GeoTIFFLayer1 = new WebGLTileLayer({
     source: TiffSource1,
-    style: createDgmGeoTiffStyle(min, max),
-    // Cache-Optimierung für Mobile
-    cacheSize: 128 
+    title: `${id1} DGM_GeoTiff`,
+    name: `${id1} DGM_GeoTiff`,
+    visible: true,
+    willReadFrequently : false,
+    style: createDgmGeoTiffStyle(min, max), // dynamische Graustufen
+    cacheSize: 128
   });
 
+  // Extent der Kachel für Klickabfrage speichern
+  GeoTIFFLayer1.bbox = bbox;
+
   map.addLayer(GeoTIFFLayer1);
+  activeDgmRasterLayer = GeoTIFFLayer1;
+
+  // Rasterdaten und Dimensionen global speichern
+  activeDgmRasterData = { raster, width, height, bbox, min, max };
+
+
 }
+
 
 
 
