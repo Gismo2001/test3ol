@@ -49,7 +49,6 @@ const attribution = new Attribution({
   html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
 });
 
-
 function createDgmGeoTiffStyle(minHeight, maxHeight) {
   const NO_DATA = -9999;
   const range = (maxHeight - minHeight) || 1;
@@ -145,9 +144,6 @@ async function addDgmLayer(url, bbox, id1) {
 
 
 }
-
-
-
 
 const dgmKachelSource = new VectorSource({
   url: '/data/dgm_kacheln.geojson',  // relativer Pfad im Projekt
@@ -258,6 +254,7 @@ popup.style.cssText = `
   font-size: 13px;
 `;
 document.body.appendChild(popup);
+ 
 
 map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
@@ -347,14 +344,40 @@ map.on('singleclick', async (evt) => {
   popup.style.display = 'block';
 });
 
+/* 
+map.on('pointermove', (evt) => {
 
-/**
+  if (evt.dragging) return;
+
+  const now = Date.now();
+  if (now - lastCall < throttleDelay) return;
+  lastCall = now;
+
+  // Nur wenn ein DGM aktiv ist
+  if (!activeDgmRasterLayer || !activeDgmRasterLayer.getVisible()) {
+    heightStatus.style.display = 'none';
+    return;
+  }
+
+  const data = activeDgmRasterLayer.getData(evt.pixel);
+
+  if (data && data[0] !== -9999 && !Number.isNaN(data[0])) {
+    heightValue.innerText = data[0].toFixed(2);
+    heightStatus.style.display = 'block';
+  } else {
+    heightStatus.style.display = 'none';
+  }
+});
+
+ *//**
  * Liefert einen Höhenwert (erste Band) an Karte-Koordinate zurück oder null.
  * Versucht mehrere Methoden (layer.getData, source.getView/readRasters).
  * @param {ol/layer/Layer} layer 
  * @param {Array<number>} coordinate map coordinate (vermutlich EPSG:3857)
  * @returns {Number|null}
  */
+
+/* 
 async function readHeightFromGeoTIFFLayer(layer, coordinate) {
   console.log('aufgerufen');
   if (!layer) return null;
@@ -439,31 +462,7 @@ async function readHeightFromGeoTIFFLayer(layer, coordinate) {
   }
 }
 const heightStatus = document.getElementById('height-status');
-const heightValue = document.getElementById('height-value');
+const heightValue = document.getElementById('height-value'); */
 
 let lastCall = 0;
 const throttleDelay = 60; // 50–80ms ideal
-
-map.on('pointermove', (evt) => {
-
-  if (evt.dragging) return;
-
-  const now = Date.now();
-  if (now - lastCall < throttleDelay) return;
-  lastCall = now;
-
-  // Nur wenn ein DGM aktiv ist
-  if (!activeDgmRasterLayer || !activeDgmRasterLayer.getVisible()) {
-    heightStatus.style.display = 'none';
-    return;
-  }
-
-  const data = activeDgmRasterLayer.getData(evt.pixel);
-
-  if (data && data[0] !== -9999 && !Number.isNaN(data[0])) {
-    heightValue.innerText = data[0].toFixed(2);
-    heightStatus.style.display = 'block';
-  } else {
-    heightStatus.style.display = 'none';
-  }
-});
