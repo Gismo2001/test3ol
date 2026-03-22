@@ -15,10 +15,8 @@ import { DragRotateAndZoom } from 'ol/interaction.js';
 //import proj4 from 'proj4';
 
 
-
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
-
-//import LayerGroup from 'ol/layer/Group';
+import LayerGroup from 'ol/layer/Group';
 import {Fill, Stroke, Style} from 'ol/style.js';
 
 
@@ -237,7 +235,7 @@ const layerSwitcher = new LayerSwitcher({
   } */
 });
 
-//map.addControl(layerSwitcher);
+map.addControl(layerSwitcher);
  
  
 
