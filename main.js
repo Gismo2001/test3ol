@@ -14,8 +14,10 @@ import { DragRotateAndZoom } from 'ol/interaction.js';
 //import { register } from 'ol/proj/proj4';
 //import proj4 from 'proj4';
 
+
+
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
-import LayerGroup from 'ol/layer/Group';
+//import LayerGroup from 'ol/layer/Group';
 import {Fill, Stroke, Style} from 'ol/style.js';
 
 

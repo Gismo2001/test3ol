@@ -1,1 +1,2 @@
-document.write(new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds());
+
+document.write(new Date().toDateString() + " " + new Date().toLocaleTimeString());
