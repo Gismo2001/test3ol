@@ -203,7 +203,7 @@ const osmTileGr = new TileLayer({
       //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
   }),
   opacity: 1,
-  visible: false,
+  visible: true,
 });
 const osmTileCr = new TileLayer({
   title: "osm-color",
@@ -251,7 +251,8 @@ layerSwitcher.on('layer:visible', function(event) {
 });
 map.addLayer(BaseGroup);
  */
-map.addLayer(gew_layer_layer);
+map.addLayer(osmTileGr);
+//map.addLayer(gew_layer_layer);
 //map.addLayer(dgmKachelLayer);
 
 // --- Popup für Info / Auswahl ---
