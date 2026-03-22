@@ -14,7 +14,7 @@ import { DragRotateAndZoom } from 'ol/interaction.js';
 //import { register } from 'ol/proj/proj4';
 //import proj4 from 'proj4';
 
-
+//import {LayerSwitcher  } from 'ol-ext/control/LayerSwitcher.js';
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
 import LayerGroup from 'ol/layer/Group';
 import {Fill, Stroke, Style} from 'ol/style.js';
@@ -219,37 +219,25 @@ const osmTileCr = new TileLayer({
   visible: true, 
 });
 
-
-/* 
+ 
 const layerSwitcher = new LayerSwitcher({ 
-  activationMode: 'click',
+  activationMode: 'click', 
+  reverse: true, 
+  trash: true, 
+  tipLabel: 'Legende',
+ /*  onchangeCheck: function(layer, checked) {
+      if (checked) {
+        //    console.log('Layer wurde aktiviert:', layer.get('name'));
+     
+      } else {
+        // console.log('Layer wurde deaktiviert:', layer.get('name'));
+        
+      }
+  } */
 });
 
-map.addControl(layerSwitcher);
+//map.addControl(layerSwitcher);
  
- */
-
-  // Add a new Layerswitcher to the map
-  map.addControl(
-     
-    new LayerSwitcher({
-      //activationMode: 'click', 
-      oninfo: function(l){
-        $('.options').html(l.get('title')+'<br/>');
-        switch(l.get('title')) {
-          case 'Test': 
-            $('<img>').appendTo($('.options'))
-              .attr('src', 'http://geoservices.brgm.fr/geologie?language=fre&version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=GEOSERVICES_GEOLOGIE&format=image/png&STYLE=default');
-            break;
-          default: 
-            break;
-        }
-      }
-    }),
-    
-  )
-
-
 
 
 
