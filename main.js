@@ -10,7 +10,7 @@ import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
 import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
 import { DragRotateAndZoom } from 'ol/interaction.js';
 
-import { transform } from 'ol/proj';
+//import { transform } from 'ol/proj';
 import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
 
@@ -19,8 +19,8 @@ import LayerGroup from 'ol/layer/Group';
 import {Fill, Stroke, Style} from 'ol/style.js';
 
 
-import GeoTIFFSource from 'ol/source/GeoTIFF.js';
-import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
+//import GeoTIFFSource from 'ol/source/GeoTIFF.js';
+//import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
 import { fromArrayBuffer } from 'geotiff';
 
 import 'ol/ol.css';
@@ -49,6 +49,8 @@ const attribution = new Attribution({
   html: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
 });
 
+
+/* 
 function createDgmGeoTiffStyle(minHeight, maxHeight) {
   const NO_DATA = -9999;
   const range = (maxHeight - minHeight) || 1;
@@ -144,6 +146,9 @@ async function addDgmLayer(url, bbox, id1) {
 
 
 }
+ */
+
+
 
 const dgmKachelSource = new VectorSource({
   url: '/data/dgm_kacheln.geojson',  // relativer Pfad im Projekt
