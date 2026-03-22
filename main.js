@@ -21,13 +21,14 @@ import {Fill, Stroke, Style} from 'ol/style.js';
 
 //import GeoTIFFSource from 'ol/source/GeoTIFF.js';
 //import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
-import { fromArrayBuffer } from 'geotiff';
+//import { fromArrayBuffer } from 'geotiff';
 
 import 'ol/ol.css';
 import 'ol-ext/dist/ol-ext.css';
 
 // Ganz oben in der Datei, außerhalb aller Funktionen:
-let activeDgmRasterLayer = null;
+
+/* let activeDgmRasterLayer = null;
 let activeDgmRasterData = { 
   raster: null, 
   width: 0, 
@@ -37,7 +38,7 @@ let activeDgmRasterData = {
   max: 100 
 };
 
-
+ */
 
 //projektion definieren und registrieren
 proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
@@ -149,7 +150,7 @@ async function addDgmLayer(url, bbox, id1) {
  */
 
 
-
+/* 
 const dgmKachelSource = new VectorSource({
   url: '/data/dgm_kacheln.geojson',  // relativer Pfad im Projekt
   format: new GeoJSON(),
@@ -167,7 +168,7 @@ const dgmKachelLayer = new VectorLayer({
     }),
   }),
 });
-
+ */
 
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
@@ -245,7 +246,7 @@ const BaseGroup = new LayerGroup({
 });
 map.addLayer(BaseGroup);
 map.addLayer(gew_layer_layer);
-map.addLayer(dgmKachelLayer);
+//map.addLayer(dgmKachelLayer);
 
 // --- Popup für Info / Auswahl ---
 
@@ -354,7 +355,8 @@ map.on('singleclick', async (evt) => {
 
  */
 
-/* 
+
+/* /* 
 map.on('pointermove', (evt) => {
 
   if (evt.dragging) return;
@@ -379,7 +381,7 @@ map.on('pointermove', (evt) => {
   }
 });
 
- *//**
+ *//*
  * Liefert einen Höhenwert (erste Band) an Karte-Koordinate zurück oder null.
  * Versucht mehrere Methoden (layer.getData, source.getView/readRasters).
  * @param {ol/layer/Layer} layer 
@@ -474,5 +476,6 @@ async function readHeightFromGeoTIFFLayer(layer, coordinate) {
 const heightStatus = document.getElementById('height-status');
 const heightValue = document.getElementById('height-value'); */
 
-let lastCall = 0;
+/* let lastCall = 0;
 const throttleDelay = 60; // 50–80ms ideal
+  */
