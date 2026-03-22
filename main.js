@@ -237,7 +237,7 @@ const layerSwitcher = new LayerSwitcher({
   } */
 });
 
-map.addControl(layerSwitcher);
+//map.addControl(layerSwitcher);
  
  
 
