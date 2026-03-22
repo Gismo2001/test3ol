@@ -216,6 +216,8 @@ const osmTileCr = new TileLayer({
   opacity: 0.75,
   visible: true, 
 });
+
+/* 
 const layerSwitcher = new LayerSwitcher({ 
   activationMode: 'click', 
   reverse: true, 
@@ -232,10 +234,13 @@ const layerSwitcher = new LayerSwitcher({
   }
 });
 map.addControl(layerSwitcher);
-
+ 
 layerSwitcher.on('layer:visible', function(event) {
  const layer = event.layer; // Überprüfe die Struktur des Events 
-});
+}); 
+ */
+
+
 const BaseGroup = new LayerGroup({
   title: "Base",
   name: "Base",
