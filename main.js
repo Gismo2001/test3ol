@@ -248,6 +248,8 @@ map.addLayer(gew_layer_layer);
 map.addLayer(dgmKachelLayer);
 
 // --- Popup für Info / Auswahl ---
+
+/* 
 const popup = document.createElement('div');
 popup.id = 'popup';
 popup.style.cssText = `
@@ -258,9 +260,10 @@ popup.style.cssText = `
   border: 1px solid #ccc;
   font-size: 13px;
 `;
-document.body.appendChild(popup);
+document.body.appendChild(popup); */
  
 
+/* 
 map.on('singleclick', async (evt) => {
   const coordinate = evt.coordinate;
   const kachelnVisible = dgmKachelLayer && dgmKachelLayer.getVisible();
@@ -348,6 +351,8 @@ map.on('singleclick', async (evt) => {
   }
   popup.style.display = 'block';
 });
+
+ */
 
 /* 
 map.on('pointermove', (evt) => {
