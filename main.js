@@ -187,6 +187,7 @@ const map = new Map({
   ]),
   interactions: defaultInteractions().extend([new DragRotateAndZoom()])
 });
+
 const gew_layer_layer = new VectorLayer({
   source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gew.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
   title: 'gew', 
@@ -218,26 +219,38 @@ const osmTileCr = new TileLayer({
   visible: true, 
 });
 
- 
+
+/* 
 const layerSwitcher = new LayerSwitcher({ 
-  activationMode: 'click', 
-  reverse: true, 
-  trash: true, 
-  tipLabel: 'Legende',
- /*  onchangeCheck: function(layer, checked) {
-      if (checked) {
-        //    console.log('Layer wurde aktiviert:', layer.get('name'));
-     
-      } else {
-        // console.log('Layer wurde deaktiviert:', layer.get('name'));
-        
-      }
-  } */
+  activationMode: 'click',
 });
 
 map.addControl(layerSwitcher);
  
- 
+ */
+
+  // Add a new Layerswitcher to the map
+  map.addControl(
+     
+    new LayerSwitcher({
+      //activationMode: 'click', 
+      oninfo: function(l){
+        $('.options').html(l.get('title')+'<br/>');
+        switch(l.get('title')) {
+          case 'Test': 
+            $('<img>').appendTo($('.options'))
+              .attr('src', 'http://geoservices.brgm.fr/geologie?language=fre&version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=GEOSERVICES_GEOLOGIE&format=image/png&STYLE=default');
+            break;
+          default: 
+            break;
+        }
+      }
+    }),
+    
+  )
+
+
+
 
 
 /* const BaseGroup = new LayerGroup({
