@@ -14,7 +14,7 @@ import { DragRotateAndZoom } from 'ol/interaction.js';
 //import { register } from 'ol/proj/proj4';
 //import proj4 from 'proj4';
 
-//import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
+import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
 import LayerGroup from 'ol/layer/Group';
 import {Fill, Stroke, Style} from 'ol/style.js';
 
@@ -200,7 +200,7 @@ const osmTileGr = new TileLayer({
   type: 'base',
   source: new OSM({
       url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
+      attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
   }),
   opacity: 1,
   visible: true,
@@ -211,13 +211,13 @@ const osmTileCr = new TileLayer({
   type: 'base',
   source: new OSM({
       url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      //attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
+      attributions: ['© OpenStreetMap contributors', 'Tiles courtesy of <a href="https://www.openstreetmap.org/"></a>'],
   }),
-  opacity: 0.75,
+  opacity: 1,
   visible: true, 
 });
 
-/* 
+ 
 const layerSwitcher = new LayerSwitcher({ 
   activationMode: 'click', 
   reverse: true, 
@@ -233,12 +233,10 @@ const layerSwitcher = new LayerSwitcher({
       }
   }
 });
+
 map.addControl(layerSwitcher);
  
-layerSwitcher.on('layer:visible', function(event) {
- const layer = event.layer; // Überprüfe die Struktur des Events 
-}); 
- */
+ 
 
 
 /* const BaseGroup = new LayerGroup({
@@ -251,7 +249,9 @@ layerSwitcher.on('layer:visible', function(event) {
 });
 map.addLayer(BaseGroup);
  */
-map.addLayer(osmTileGr);
+map.addLayer(osmTileCr);
+//map.addLayer(osmTileGr);
+
 //map.addLayer(gew_layer_layer);
 //map.addLayer(dgmKachelLayer);
 
