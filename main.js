@@ -223,7 +223,7 @@ const layerSwitcher = new LayerSwitcher({
   reverse: true, 
   trash: true, 
   tipLabel: 'Legende',
-  onchangeCheck: function(layer, checked) {
+ /*  onchangeCheck: function(layer, checked) {
       if (checked) {
         //    console.log('Layer wurde aktiviert:', layer.get('name'));
      
@@ -231,7 +231,7 @@ const layerSwitcher = new LayerSwitcher({
         // console.log('Layer wurde deaktiviert:', layer.get('name'));
         
       }
-  }
+  } */
 });
 
 map.addControl(layerSwitcher);
