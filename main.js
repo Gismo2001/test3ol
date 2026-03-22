@@ -23,8 +23,8 @@ import {Fill, Stroke, Style} from 'ol/style.js';
 //import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
 //import { fromArrayBuffer } from 'geotiff';
 
-import 'ol/ol.css';
-import 'ol-ext/dist/ol-ext.css';
+//import 'ol/ol.css';
+//import 'ol-ext/dist/ol-ext.css';
 
 // Ganz oben in der Datei, außerhalb aller Funktionen:
 
