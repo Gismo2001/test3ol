@@ -11,8 +11,8 @@ import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Con
 import { DragRotateAndZoom } from 'ol/interaction.js';
 
 //import { transform } from 'ol/proj';
-import { register } from 'ol/proj/proj4';
-import proj4 from 'proj4';
+//import { register } from 'ol/proj/proj4';
+//import proj4 from 'proj4';
 
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
 import LayerGroup from 'ol/layer/Group';
@@ -41,9 +41,9 @@ let activeDgmRasterData = {
  */
 
 //projektion definieren und registrieren
-proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
-proj4.defs('EPSG:25832', '+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs +type=crs');
-register(proj4);
+//proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
+//proj4.defs('EPSG:25832', '+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs +type=crs');
+//register(proj4);
 
 const attribution = new Attribution({
   collapsible: true,
