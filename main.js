@@ -1,50 +1,122 @@
-import Map from 'ol/Map.js';
-import View from 'ol/View.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
-import { defaults as defaultInteractions } from 'ol/interaction.js';
-
+import './style.css';
+import {Map, View} from 'ol';
 import * as LoadingStrategy from 'ol/loadingstrategy';
-import * as proj from 'ol/proj';
-import {OSM, Vector as VectorSource} from 'ol/source.js';
-import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
-import { FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control } from 'ol/control.js';
-import { DragRotateAndZoom } from 'ol/interaction.js';
+//import {bbox as bboxStrategy, tile} from 'ol/loadingstrategy.js';
+import jsPDF from 'jspdf';
+import Feature from 'ol/Feature';
+import Overlay from 'ol/Overlay.js';
+import OSM from 'ol/source/OSM';
+import TileWMS from 'ol/source/TileWMS.js';
+import TileImage from 'ol/source/TileImage.js';
+import XYZ from 'ol/source/XYZ.js';
+import {Vector as VectorSource} from 'ol/source.js';
+import {Tile as TileLayer} from 'ol/layer.js';
 
-//import { transform } from 'ol/proj';
-//import { register } from 'ol/proj/proj4';
-//import proj4 from 'proj4';
+import Bar from 'ol-ext/control/Bar';
+import EditBar from 'ol-ext/control/EditBar';
+import Tooltip from 'ol-ext/overlay/Tooltip';
+import Notification from 'ol-ext/control/Notification';
+import {ScaleLine} from 'ol/control.js';
+import TextButton from 'ol-ext/control/TextButton';
+import Button from 'ol-ext/control/Button';
+import Toggle from 'ol-ext/control/Toggle';
+import Permalink from 'ol-ext/control/Permalink';
 
-//import {LayerSwitcher  } from 'ol-ext/control/LayerSwitcher.js';
+import {Select} from 'ol/interaction.js';
+import {Draw} from 'ol/interaction.js';
+import {getLength as getLengthLine, getArea as getAreaPolygon} from 'ol/sphere.js';   
 import LayerSwitcher from 'ol-ext/control/LayerSwitcher';
+
+
+import {FullScreen, Attribution, defaults as defaultControls, ZoomToExtent, Control, Rotate } from 'ol/control.js';
+import {Vector as VectorLayer} from 'ol/layer.js';
+import GeoJSON from 'ol/format/GeoJSON.js';
+import KML from 'ol/format/KML.js';
+
+import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style.js';
+
+
+import {circular} from 'ol/geom/Polygon';
+import {LineString, Polygon, Point, Circle} from 'ol/geom.js';
+
+import * as proj from 'ol/proj';
+
+import {getArea, getLength} from 'ol/sphere.js';
+import {unByKey} from 'ol/Observable.js';
+
+import { DragRotateAndZoom } from 'ol/interaction.js';
+import { DragAndDrop } from 'ol/interaction.js';
+import { defaults as defaultInteractions } from 'ol/interaction.js';
+import { singleClick } from 'ol/events/condition';
+
 import LayerGroup from 'ol/layer/Group';
-import {Fill, Stroke, Style} from 'ol/style.js';
+
+import CanvasAttribution from 'ol-ext/control/CanvasAttribution';
+import CanvasTitle from 'ol-ext/control/CanvasTitle';
+import CanvasScaleLine from 'ol-ext/control/CanvasScaleLine';
+import PrintDialog from 'ol-ext/control/PrintDialog';
+import Legend from 'ol-ext/control/Legend';
+
+import { toLonLat, transform } from 'ol/proj';
+import { format } from 'ol/coordinate';
 
 
-//import GeoTIFFSource from 'ol/source/GeoTIFF.js';
-//import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
-//import { fromArrayBuffer } from 'geotiff';
 
-//import 'ol/ol.css';
-//import 'ol-ext/dist/ol-ext.css';
+import { Text } from 'ol/style';
+import { Icon } from 'ol/style';
 
-// Ganz oben in der Datei, außerhalb aller Funktionen:
 
-/* let activeDgmRasterLayer = null;
-let activeDgmRasterData = { 
-  raster: null, 
-  width: 0, 
-  height: 0, 
-  bbox: null, 
-  min: 0, 
-  max: 100 
-};
+import GeoTIFFSource from 'ol/source/GeoTIFF.js';
+import { WebGLTile as WebGLTileLayer } from 'ol/layer.js';
+import { fromArrayBuffer } from 'geotiff';
 
- */
+import { 
+  myFuncInfoDiv,
+  UTMToLatLon_Fix,
+  generatePopupHTML,
+  zoomToFeature,
+  makeDivDraggable
+} from './myFunctions';
 
-//projektion definieren und registrieren
-//proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
-//proj4.defs('EPSG:25832', '+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs +type=crs');
-//register(proj4);
+
+import proj4 from 'proj4';
+import { register } from 'ol/proj/proj4';
+import SearchPhoton from 'ol-ext/control/SearchPhoton';
+import WMSCapabilities from'ol-ext/control/WMSCapabilities';
+import { getCenter } from 'ol/extent'; // ❗ WICHTIG: oben importieren
+
+import {extend as extendExtent, createEmpty as createEmptyExtent} from 'ol/extent';
+
+let activeDgmRasterLayers = [];  
+let activeDgmRasterData = [];  
+
+let dgmClickListener = null;
+let dgmPointerMoveListener = null;
+let loadedDgms = [];   // speichert {tile_id, bbox}
+
+let activeDomRasterLayers = [];  
+let activeDomRasterData = [];  
+let domClickListener = null;
+let loadedDoms = [];   // speichert {tile_id, bbox}
+
+let profileMode = false;
+let ismobile = false;
+
+
+let permaFunktionality; // Nur deklarieren, noch nicht definieren
+
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+
+proj4.defs("EPSG:32632", "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs");
+proj4.defs('EPSG:25832', '+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs');
+proj4.defs("EPSG:31467", "+proj=tmerc +lat_0=0 +lon_0=9 +k=1.000000 +x_0=3500000 +y_0=0 +datum=potsdam +units=m +no_defs");
+proj4.defs("EPSG:31466", "+proj=tmerc +lat_0=0 +lon_0=6 +k=1.000000 +x_0=2500000 +y_0=0 +datum=potsdam +units=m +no_defs");
+ol.proj.proj4.register(proj4);
+
+
 
 const attribution = new Attribution({
   collapsible: true,
