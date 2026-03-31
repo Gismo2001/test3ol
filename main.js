@@ -94,6 +94,24 @@ const attribution = new Attribution({
 });
 
 
+let activeDgmRasterLayers = [];  
+let activeDgmRasterData = [];  
+
+let dgmClickListener = null;
+let dgmPointerMoveListener = null;
+let loadedDgms = [];   // speichert {tile_id, bbox}
+
+let activeDomRasterLayers = [];  
+let activeDomRasterData = [];  
+let domClickListener = null;
+let loadedDoms = [];   // speichert {tile_id, bbox}
+
+let profileMode = false;
+let ismobile = false;
+
+
+let permaFunktionality; // Nur deklarieren, noch nicht definieren
+
 /* 
 function createDgmGeoTiffStyle(minHeight, maxHeight) {
   const NO_DATA = -9999;
