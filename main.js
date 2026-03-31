@@ -81,12 +81,6 @@ import {
 
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4';
-import SearchPhoton from 'ol-ext/control/SearchPhoton';
-import WMSCapabilities from'ol-ext/control/WMSCapabilities';
-import { getCenter } from 'ol/extent'; // ❗ WICHTIG: oben importieren
-
-import {extend as extendExtent, createEmpty as createEmptyExtent} from 'ol/extent';
-
 
 
 
