@@ -79,44 +79,6 @@ import {
 } from './myFunctions';
 
 
-import proj4 from 'proj4';
-import { register } from 'ol/proj/proj4';
-import SearchPhoton from 'ol-ext/control/SearchPhoton';
-import WMSCapabilities from'ol-ext/control/WMSCapabilities';
-import { getCenter } from 'ol/extent'; // ❗ WICHTIG: oben importieren
-
-import {extend as extendExtent, createEmpty as createEmptyExtent} from 'ol/extent';
-
-let activeDgmRasterLayers = [];  
-let activeDgmRasterData = [];  
-
-let dgmClickListener = null;
-let dgmPointerMoveListener = null;
-let loadedDgms = [];   // speichert {tile_id, bbox}
-
-let activeDomRasterLayers = [];  
-let activeDomRasterData = [];  
-let domClickListener = null;
-let loadedDoms = [];   // speichert {tile_id, bbox}
-
-let profileMode = false;
-let ismobile = false;
-
-
-let permaFunktionality; // Nur deklarieren, noch nicht definieren
-
-function isMobileDevice() {
-  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-
-proj4.defs("EPSG:32632", "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs");
-proj4.defs('EPSG:25832', '+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs');
-proj4.defs("EPSG:31467", "+proj=tmerc +lat_0=0 +lon_0=9 +k=1.000000 +x_0=3500000 +y_0=0 +datum=potsdam +units=m +no_defs");
-proj4.defs("EPSG:31466", "+proj=tmerc +lat_0=0 +lon_0=6 +k=1.000000 +x_0=2500000 +y_0=0 +datum=potsdam +units=m +no_defs");
-ol.proj.proj4.register(proj4);
-
-
 
 const attribution = new Attribution({
   collapsible: true,
