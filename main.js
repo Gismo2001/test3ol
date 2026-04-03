@@ -1,3 +1,4 @@
+
 import './style.css';
 import {Map, View} from 'ol';
 import * as LoadingStrategy from 'ol/loadingstrategy';
@@ -92,6 +93,7 @@ import 'tabulator-tables/dist/css/tabulator.min.css';
 
 import Split from 'split.js';
 
+
 let splitInstance = null;
 
 const attribution = new Attribution({
@@ -122,6 +124,7 @@ function isMobileDevice() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+
 const mapView = new View({
   center: proj.fromLonLat([7.35, 52.7]),
   zoom: 9
@@ -138,6 +141,22 @@ const map = new Map({
   ]),
   interactions: defaultInteractions().extend([new DragRotateAndZoom()])
 });
+
+const sleStyle = new Style({
+    image: new Icon({
+        src: './data/sle.svg',
+        scale: .9 
+    })
+  });
+const exp_bw_sle_layer = new VectorLayer({
+  source: new VectorSource({format: new GeoJSON(),url:function (extent) {return './myLayers/exp_bw_sle.geojson' + '?bbox=' + extent.join(',');},strategy: LoadingStrategy.bbox }),
+  title: 'Schleuse', 
+  name: 'sle', 
+  permalink:'sle', 
+  style: sleStyle,
+  visible: true, 
+});
+
 
 const gew_layer_layer = new VectorLayer({
   source: new VectorSource({format: new GeoJSON(), url: function (extent) {return './myLayers/gew.geojson' + '?bbox=' + extent.join(','); }, strategy: LoadingStrategy.bbox }),
@@ -219,6 +238,22 @@ const wmsUesgLayer = new TileLayer({
   visible: true,
   opacity: .5,
 });
+const wmsWrrlFgLayer = new TileLayer({
+  title: 'Fließgew.',
+  name: 'Fließgew',
+  permalink:'Fließgew',
+  source: new TileWMS({
+    url:  'https://www.umweltkarten-niedersachsen.de/arcgis/services/WRRL_wms/MapServer/WMSServer',
+    params: {
+      'LAYERS': 'Natuerliche_erheblich_veraenderte_und_kuenstliche_Fliessgewaesser',
+      'FORMAT': 'image/png',
+      'TRANSPARENT': true,
+      'TILED': true,
+    },
+  }),
+  visible: true,
+  opacity: 1,
+});
  
 const layerSwitcher = new LayerSwitcher({ 
   activationMode: 'click', 
@@ -239,30 +274,17 @@ const layerSwitcher = new LayerSwitcher({
 map.addControl(layerSwitcher);
 
  // 1. Tabelle initialisieren (außerhalb des Klicks)
-const table = new Tabulator("#wms_data_table", {
-    height: "100%",
-    layout: "fitColumns",
+let table = new Tabulator("#wms_data_table", {
+    height: "100%",        // Wichtig für den internen Scroll-Container
+    layout: "fitData",     // ÄNDERUNG: Spalten behalten ihre natürliche Breite
     autoColumns: true,
-    autoColumnsDefinitions: function(definitions) {
-        // Blendet die Hilfs-Spalte 'Ebene' aus, da wir sie im Dropdown schon sehen
-        definitions.forEach((column) => {
-            if (column.field === "Ebene") {
-                column.visible = false;
-            }
-        });
-        return definitions;
+    columnDefaults:{
+        tooltip:true,      // Zeigt Inhalt beim Drüberfahren
     },
 });
 
-
 // WICHTIG die Karte sich neu berechnen:
 map.updateSize();
-
-// Funktion zum Anzeigen/Verstecken
-function toggleTable(show) {
-    const el = document.getElementById("wms_data_table");
-    el.style.display = show ? "block" : "none";
-}
 
 function showTable(data) {
     const container = document.getElementById("wms-table-container");
@@ -270,7 +292,7 @@ function showTable(data) {
     // Split.js initialisieren, falls noch nicht geschehen
     if (!splitInstance) {
         splitInstance = Split(['#map', '#wms-table-container'], {
-            sizes: [95, 5], // Startverteilung in %
+            sizes: [85, 15], // Startverteilung in %
             minSize: [150, 100], // Mindesthöhen
             direction: 'vertical',
             gutterSize: 5,
@@ -281,7 +303,7 @@ function showTable(data) {
         });
     } else {
         // Falls schon da, nur Größe auf Standard zurücksetzen
-        splitInstance.setSizes([95, 5]);
+        splitInstance.setSizes([85, 15]);
     }
 
     table.setData(data);
@@ -311,11 +333,14 @@ map.addLayer(BaseGroup);
 map.addLayer(osmTileCr);
 //map.addLayer(osmTileGr);
 
-map.addLayer(gew_layer_layer);
+
 
 map.addLayer(wmsNsgLayer);
 map.addLayer(wmsLsgLayer);
 map.addLayer(wmsUesgLayer);
+map.addLayer(wmsWrrlFgLayer);
+map.addLayer(gew_layer_layer);
+map.addLayer(exp_bw_sle_layer);
 
 // Dein Karten-Event
 let currentClickResults = {}; // Speichert { 'NSG': [data], 'UESG': [data] }
@@ -364,22 +389,30 @@ function updateSelector(names) {
     selector.innerHTML = names.map(name => `<option value="${name}">${name}</option>`).join('');
 }
 
-// Hilfsfunktion: Schaltet die Daten in Tabulator um
 window.switchLayerData = function() {
     const selectedLayer = document.getElementById('layer-selector').value;
     const data = currentClickResults[selectedLayer];
-
-    // Tabelle komplett löschen und neu aufbauen
-    if (table) table.destroy();
     
-    table = new Tabulator("#wms_data_table", {
-        data: data,
-        autoColumns: true,
-        layout: "fitColumns",
-        height: "100%",
-    });
-};
+    if (data && data.length > 0) {
+        if (table) table.destroy(); // Harter Reset
+        
+        table = new Tabulator("#wms_data_table", {
+            data: data,
+            height: "100%",
+            layout: "fitData",
+            autoColumns: true,
+            // Verhindert, dass Tabulator Platz für Header-Filter reserviert, 
+            // wenn diese nicht aktiv sind:
+            headerVisible: true, 
+            renderVertical: "basic", // Deaktiviert Virtual DOM für kleine Datenmengen (stabiler)
+        });
 
+        // Ein kleiner "Nachstoß", um das Layout zu fixieren
+        setTimeout(() => {
+            table.redraw(true);
+        }, 10);
+    }
+};
 
 function parseArcGISXml(xmlString, layerName) {
     const parser = new DOMParser();

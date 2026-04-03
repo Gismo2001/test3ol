@@ -30,20 +30,22 @@ html {
     width: 100%;
     position: relative; /* Wichtig für OpenLayers Controls */
 }
-
-/* Tabellen-Container */
+/* Der äußere Container darf NICHT scrollen, sonst verschwindet der Header */
 #wms-table-container {
-    height: 30vh; /* Festgelegte Höhe für den Tabellen-Teil */
-    width: 100%;
-    display: none; /* Startet unsichtbar */
+    display: none;
+    flex-direction: column;
+    height: 40vh;
+    overflow: hidden; /* WICHTIG: Kein Scrollen hier! */
 }
-/* Die Tabelle selbst füllt den Container aus */
 
-/* Tabulator braucht 100% Höhe seines Containers, um intern zu scrollen */
+/* Das Div, in dem Tabulator sitzt */
 #wms_data_table {
     width: 100%;
-    height: 100%;
+    flex-grow: 1;
+    overflow: hidden; /* Tabulator regelt das Scrollen intern */
 }
+
+
 
 /* Optional: Verhindert, dass die Karte beim ersten Laden zu klein ist */
 #map .ol-viewport {
