@@ -17,24 +17,50 @@ html {
   z-index: 1;
 }
 
-#map {
-  width: 100vw;
-  height: 100vh;
-   position: relative;
-}
- 
-.height-status {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255,255,255,0.9);
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  z-index: 1000;
-  display: none;
-  pointer-events: none;
+#main-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
 }
 
+
+#map {
+    flex: 1; /* Nimmt 100% ein, solange die Tabelle 'none' ist */
+    width: 100%;
+    position: relative; /* Wichtig für OpenLayers Controls */
+}
+
+/* Tabellen-Container */
+#wms-table-container {
+    height: 30vh; /* Festgelegte Höhe für den Tabellen-Teil */
+    width: 100%;
+    display: none; /* Startet unsichtbar */
+}
+/* Die Tabelle selbst füllt den Container aus */
+
+/* Tabulator braucht 100% Höhe seines Containers, um intern zu scrollen */
+#wms_data_table {
+    width: 100%;
+    height: 100%;
+}
+
+/* Optional: Verhindert, dass die Karte beim ersten Laden zu klein ist */
+#map .ol-viewport {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzy7u4AAAAAXRSTlMAQObYZgAAAA1JREFUeNoWw6EBADAIAlBPHcH/X9HVYTXgByEbCkPreV5IAAAAAElFTkSuQmCC');
+    cursor: row-resize;
+    height: 10px; /* Dicke der Trennlinie */
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}

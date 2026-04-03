@@ -87,6 +87,12 @@ import { getCenter } from 'ol/extent'; // ❗ WICHTIG: oben importieren
 
 import {extend as extendExtent, createEmpty as createEmptyExtent} from 'ol/extent';
 
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import 'tabulator-tables/dist/css/tabulator.min.css';
+
+import Split from 'split.js';
+
+let splitInstance = null;
 
 const attribution = new Attribution({
   collapsible: true,
@@ -164,6 +170,55 @@ const osmTileCr = new TileLayer({
   visible: true, 
 });
 
+const wmsNsgLayer = new TileLayer({
+  title: "NSG",
+  name: "NSG",
+  permalink:'NSG',  
+  source: new TileWMS({
+    url: 'https://www.umweltkarten-niedersachsen.de/arcgis/services/Natur_wms/MapServer/WMSServer',
+    params: {
+      'LAYERS': 'Naturschutzgebiet',
+      'FORMAT': 'image/png',
+      'TRANSPARENT': true,
+      'TILED': true,
+    },
+  }),
+  visible: true,
+  opacity: .5,
+});
+const wmsLsgLayer = new TileLayer({
+  title: "LSG",
+  name: "LSG",
+  permalink:'LSG',  
+  source: new TileWMS({
+    url: 'https://www.umweltkarten-niedersachsen.de/arcgis/services/Natur_wms/MapServer/WMSServer',
+    params: {
+      'LAYERS': 'Landschaftsschutzgebiet',
+      'FORMAT': 'image/png',
+      'TRANSPARENT': true,
+      'TILED': true,
+    },
+  }),
+  
+  visible: true,
+  opacity: .5,
+});
+const wmsUesgLayer = new TileLayer({
+  title: 'ÜSG',
+  name: 'UESG',
+  permalink:'UESG',
+  source: new TileWMS({
+    url:  'https://www.umweltkarten-niedersachsen.de/arcgis/services/HWSchutz_wms/MapServer/WMSServer',
+    params: {
+      'LAYERS': 'Überschwemmungsgebiete_Verordnungsfläechen_Niedersachsen11182',
+      'FORMAT': 'image/png',
+      'TRANSPARENT': true,
+      'TILED': true,
+    },
+  }),
+  visible: true,
+  opacity: .5,
+});
  
 const layerSwitcher = new LayerSwitcher({ 
   activationMode: 'click', 
@@ -182,9 +237,66 @@ const layerSwitcher = new LayerSwitcher({
 });
 
 map.addControl(layerSwitcher);
- 
+
+ // 1. Tabelle initialisieren (außerhalb des Klicks)
+const table = new Tabulator("#wms_data_table", {
+    height: "100%",
+    layout: "fitColumns",
+    autoColumns: true,
+    autoColumnsDefinitions: function(definitions) {
+        // Blendet die Hilfs-Spalte 'Ebene' aus, da wir sie im Dropdown schon sehen
+        definitions.forEach((column) => {
+            if (column.field === "Ebene") {
+                column.visible = false;
+            }
+        });
+        return definitions;
+    },
+});
 
 
+// WICHTIG die Karte sich neu berechnen:
+map.updateSize();
+
+// Funktion zum Anzeigen/Verstecken
+function toggleTable(show) {
+    const el = document.getElementById("wms_data_table");
+    el.style.display = show ? "block" : "none";
+}
+
+function showTable(data) {
+    const container = document.getElementById("wms-table-container");
+    container.style.display = "flex";
+    // Split.js initialisieren, falls noch nicht geschehen
+    if (!splitInstance) {
+        splitInstance = Split(['#map', '#wms-table-container'], {
+            sizes: [95, 5], // Startverteilung in %
+            minSize: [150, 100], // Mindesthöhen
+            direction: 'vertical',
+            gutterSize: 5,
+            onDrag: () => {
+                map.updateSize(); // Karte anpassen
+                table.redraw();   // Tabulator anpassen
+            }
+        });
+    } else {
+        // Falls schon da, nur Größe auf Standard zurücksetzen
+        splitInstance.setSizes([95, 5]);
+    }
+
+    table.setData(data);
+    map.updateSize();
+}
+
+// Beim Schließen:
+window.closeTable = function() {
+    if (splitInstance) {
+        splitInstance.destroy(); // Split-Verhalten aufheben
+        splitInstance = null;
+    }
+    document.getElementById("wms-table-container").style.display = "none";
+    map.updateSize();
+};
 
 /* const BaseGroup = new LayerGroup({
   title: "Base",
@@ -199,237 +311,97 @@ map.addLayer(BaseGroup);
 map.addLayer(osmTileCr);
 //map.addLayer(osmTileGr);
 
-//map.addLayer(gew_layer_layer);
-//map.addLayer(dgmKachelLayer);
+map.addLayer(gew_layer_layer);
 
-// --- Popup für Info / Auswahl ---
+map.addLayer(wmsNsgLayer);
+map.addLayer(wmsLsgLayer);
+map.addLayer(wmsUesgLayer);
 
-/* 
-const popup = document.createElement('div');
-popup.id = 'popup';
-popup.style.cssText = `
-  position: absolute;
-  background: white;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 13px;
-`;
-document.body.appendChild(popup); */
- 
+// Dein Karten-Event
+let currentClickResults = {}; // Speichert { 'NSG': [data], 'UESG': [data] }
 
-/* 
-map.on('singleclick', async (evt) => {
-  const coordinate = evt.coordinate;
-  const kachelnVisible = dgmKachelLayer && dgmKachelLayer.getVisible();
+map.on('singleclick', function (evt) {
+    const promises = [];
+    const viewResolution = map.getView().getResolution();
+    currentClickResults = {}; // Reset
 
-  const popup = document.getElementById('popup') || (() => {
-    const div = document.createElement('div');
-    div.id = 'popup';
-    div.style.cssText = `
-      position: absolute;
-      background: white;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 13px;
-    `;
-    document.body.appendChild(div);
-    return div;
-  })();
+    map.getLayers().getArray().forEach(layer => {
+        if (layer.getVisible() && layer.getSource()?.getFeatureInfoUrl) {
+            const name = layer.get('name');
+            const url = layer.getSource().getFeatureInfoUrl(evt.coordinate, viewResolution, 'EPSG:3857', {
+                'INFO_FORMAT': 'text/xml',
+                'QUERY_LAYERS': layer.getSource().getParams().LAYERS,
+                'LAYERS': layer.getSource().getParams().LAYERS
+            });
 
-  // 🟢 FALL 1: DGM-Kacheln-Layer sichtbar → Auswahl einer Kachel
-  if (kachelnVisible) {
-    let featureFound = false;
-
-    map.forEachFeatureAtPixel(evt.pixel, (feature) => {
-      featureFound = true;
-      const props = feature.getProperties();
-      const tifUrl = props.dgm1;
-      const bbox = feature.getGeometry().getExtent();
-
-      popup.style.left = evt.pixel[0] + 'px';
-      popup.style.top = evt.pixel[1] + 'px';
-      popup.innerHTML = `
-        <b>Kachel:</b> ${props.tile_id}<br>
-        <b>Datum:</b> ${props.Aktualitaet}<br>
-        <button id="loadDgmBtn">DGM laden</button>
-      `;
-      popup.style.display = 'block';
-
-      document.getElementById('loadDgmBtn').onclick = function () {
-        addDgmLayer(tifUrl, bbox, props.tile_id);
-        popup.style.display = 'none';
-      };
+            if (url) {
+                promises.push(
+                    fetch(url)
+                        .then(res => res.text())
+                        .then(xml => {
+                            const data = parseArcGISXml(xml, name);
+                            if (data.length > 0) currentClickResults[name] = data;
+                        })
+                );
+            }
+        }
     });
 
-    if (!featureFound) popup.style.display = 'none';
-    return;
-  }
-
-  // 🟢 FALL 2: Kacheln-Layer unsichtbar → Höhe aus allen DGM-Layern ermitteln
-  const dgmLayers = map.getLayers().getArray().filter((layer) => {
-    const name = layer.get('name');
-    return name && name.endsWith('DGM_GeoTiff') && layer.getVisible();
-  });
-  
-  if (dgmLayers.length === 0) {
-    popup.style.display = 'none';
-    console.warn('Keine sichtbaren DGM-Layer gefunden.');
-    return;
-  }
-  // Versuche der Reihe nach, einen Höhenwert zu bekommen
-  let height = null;
-  for (const layer of dgmLayers) {
-    // extra debug: welche Methoden hat der Layer?
-    console.log('Prüfe Layer', layer.get('name'), {
-      hasGetData: typeof layer.getData === 'function',
-      sourceHasGetView: layer.getSource ? typeof layer.getSource().getView === 'function' : false
+    Promise.all(promises).then(() => {
+        const layerNames = Object.keys(currentClickResults);
+        if (layerNames.length > 0) {
+            updateSelector(layerNames);
+            showTable(currentClickResults[layerNames[0]]); // Zeige den ersten gefundenen Layer
+        } else {
+            closeTable();
+        }
     });
-
-    const val = await readHeightFromGeoTIFFLayer(layer, evt.pixel);
-
-    if (val !== null && val !== undefined && !Number.isNaN(val)) {
-      height = val;
-      console.log(`Höhe von Layer "${layer.get('name')}": ${height.toFixed(2)} m`);
-      break;
-    }
-  }
-
-  // Popup-Ausgabe
-  popup.style.left = evt.pixel[0] + 10 + 'px';
-  popup.style.top = evt.pixel[1] - 15 + 'px';
-  if (height !== null) {
-    popup.innerHTML = `Höhe: <b>${height.toFixed(2)} m</b>`;
-  } else {
-    popup.innerHTML = `<i>Keine DGM-Daten an dieser Position verfügbar</i>`;
-  }
-  popup.style.display = 'block';
 });
 
- */
-
-
-/* /* 
-map.on('pointermove', (evt) => {
-
-  if (evt.dragging) return;
-
-  const now = Date.now();
-  if (now - lastCall < throttleDelay) return;
-  lastCall = now;
-
-  // Nur wenn ein DGM aktiv ist
-  if (!activeDgmRasterLayer || !activeDgmRasterLayer.getVisible()) {
-    heightStatus.style.display = 'none';
-    return;
-  }
-
-  const data = activeDgmRasterLayer.getData(evt.pixel);
-
-  if (data && data[0] !== -9999 && !Number.isNaN(data[0])) {
-    heightValue.innerText = data[0].toFixed(2);
-    heightStatus.style.display = 'block';
-  } else {
-    heightStatus.style.display = 'none';
-  }
-});
-
- *//*
- * Liefert einen Höhenwert (erste Band) an Karte-Koordinate zurück oder null.
- * Versucht mehrere Methoden (layer.getData, source.getView/readRasters).
- * @param {ol/layer/Layer} layer 
- * @param {Array<number>} coordinate map coordinate (vermutlich EPSG:3857)
- * @returns {Number|null}
- */
-
-/* 
-async function readHeightFromGeoTIFFLayer(layer, coordinate) {
-  console.log('aufgerufen');
-  if (!layer) return null;
-
-  // 1) Wenn die einfache API verfügbar ist: layer.getData(coordinate)
-  if (typeof layer.getData === 'function') {
-    try {
-      const val = await layer.getData(coordinate);
-      if (val && val.length && val[0] !== undefined && val[0] !== null && !Number.isNaN(val[0])) {
-        return val[0];
-      }
-    } catch (err) {
-      console.warn('layer.getData() fehlgeschlagen für', layer.get('name'), err);
-      // fallthrough zu nächster Methode
-    }
-  }
-
-  // 2) Fallback: direkt mit der GeoTIFF-Source arbeiten (robuster)
-  const source = layer.getSource && layer.getSource();
-  if (!source) return null;
-
-  if (typeof source.getView !== 'function') {
-    console.warn('Source hat keine getView()-Methode — cannot read rasters directly', layer.get('name'));
-    return null;
-  }
-
-  try {
-    // wir wollen in die native Projektion des Geotiffs transformieren (hier EPSG:25832)
-    // Karte proj ist z.B. EPSG:3857
-    const mapView = map.getView();
-    const mapProj = mapView.getProjection().getCode();
-    const tifProj = source.projection || 'EPSG:25832'; // GeoTIFF-Quelle hast du in addDgmLayer mit EPSG:25832 gesetzt
-
-    // Transformiere die Klick-Koordinate in die GeoTIFF-Projektion
-    const coordInTifProj = transform(coordinate, mapProj, tifProj);
-
-    // extent: benutze layer.bbox (falls gesetzt beim Laden), sonst viewport-extent in tifProj
-    const extent = layer.bbox || transformExtent(mapView.calculateExtent(map.getSize()), mapProj, tifProj);
-
-    // resolution: aktuell verwendete map resolution -> approximativ
-    const resolution = mapView.getResolution();
-
-    // Hol dir eine "View" (OpenLayers GeoTIFF source API)
-    const dataView = await source.getView({
-      extent: extent,
-      resolution: resolution,
-      projection: tifProj,
-    });
-
-    if (!dataView) {
-      console.warn('getView() lieferte kein dataView für', layer.get('name'));
-      return null;
-    }
-
-    // Lese nur das erste Band (samples: [0]) — speichere als 1D-Array
-    const rasters = await dataView.readRasters({ samples: [0] });
-    const band = rasters[0]; // typed array
-    const width = dataView.width;
-    const height = dataView.height;
-    const dvExtent = dataView.extent; // [minX, minY, maxX, maxY] in tifProj
-
-    // berechne Pixelkoordinaten innerhalb des dataView
-    const xRatio = (coordInTifProj[0] - dvExtent[0]) / (dvExtent[2] - dvExtent[0]);
-    const yRatio = (dvExtent[3] - coordInTifProj[1]) / (dvExtent[3] - dvExtent[1]); // y von top
-
-    const px = Math.floor(xRatio * width);
-    const py = Math.floor(yRatio * height);
-
-    if (px < 0 || px >= width || py < 0 || py >= height) {
-      // Klick außerhalb des gerenderten dataView
-      return null;
-    }
-
-    const index = py * width + px;
-    const value = band[index];
-
-    if (value === undefined || value === null || Number.isNaN(value)) return null;
-    return value;
-  } catch (err) {
-    console.warn('Fehler beim Lesen der GeoTIFF-Rasterdaten von', layer.get('name'), err);
-    return null;
-  }
+// Hilfsfunktion: Füllt das Dropdown
+function updateSelector(names) {
+    const selector = document.getElementById('layer-selector');
+    selector.innerHTML = names.map(name => `<option value="${name}">${name}</option>`).join('');
 }
-const heightStatus = document.getElementById('height-status');
-const heightValue = document.getElementById('height-value'); */
 
-/* let lastCall = 0;
-const throttleDelay = 60; // 50–80ms ideal
-  */
+// Hilfsfunktion: Schaltet die Daten in Tabulator um
+window.switchLayerData = function() {
+    const selectedLayer = document.getElementById('layer-selector').value;
+    const data = currentClickResults[selectedLayer];
+
+    // Tabelle komplett löschen und neu aufbauen
+    if (table) table.destroy();
+    
+    table = new Tabulator("#wms_data_table", {
+        data: data,
+        autoColumns: true,
+        layout: "fitColumns",
+        height: "100%",
+    });
+};
+
+
+function parseArcGISXml(xmlString, layerName) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    const featureNodes = xmlDoc.getElementsByTagName("FIELDS");
+    const data = [];
+
+    for (let i = 0; i < featureNodes.length; i++) {
+        const attributes = featureNodes[i].attributes;
+        // WICHTIG: Hier setzen wir das Feld 'Ebene' für die Gruppierung
+        let row = { "Ebene": layerName }; 
+        for (let j = 0; j < attributes.length; j++) {
+            row[attributes[j].nodeName] = attributes[j].nodeValue;
+        }
+        data.push(row);
+    }
+    return data;
+}
+
+
+
+// Nach der Initialisierung der map:
+window.addEventListener('load', () => {
+    map.updateSize();
+});
